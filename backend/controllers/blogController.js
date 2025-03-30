@@ -14,6 +14,8 @@ async function createBlog(req, res) {
   try {
     const creator = req.user;
 
+    console.log(1,creator)
+
     const { title, description } = req.body;
     const draft = req.body.draft == "false" ? false : true;
     const { image, images } = req.files;
@@ -69,6 +71,8 @@ async function createBlog(req, res) {
       title.toLowerCase().split(" ").join("-") + "-" + randomUUID();
     // const blogId = title.toLowerCase().replace(/ +/g, '-')
 
+    console.log(2,blogId)
+
     const blog = await Blog.create({
       description,
       title,
@@ -81,6 +85,9 @@ async function createBlog(req, res) {
       tags,
     });
 
+
+    console.log(3,blog)
+    
     await User.findByIdAndUpdate(creator, { $push: { blogs: blog._id } });
 
     if (draft) {

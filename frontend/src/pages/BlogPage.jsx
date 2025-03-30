@@ -140,14 +140,14 @@ function BlogPage() {
           </h1>
 
           <div className="flex items-center my-5 gap-3">
-            <Link to={`/@${blogData.creator.username}`}>
+            <Link to={`/@${blogData.creator?.username}`}>
               <div>
                 <div className="w-10 h-10 cursor-pointer aspect-square rounded-full overflow-hidden">
                   <img
                     src={
                       blogData?.creator?.profilePic
                         ? blogData?.creator?.profilePic
-                        : `https://api.dicebear.com/9.x/initials/svg?seed=${blogData.creator.name}`
+                        : `https://api.dicebear.com/9.x/initials/svg?seed=${blogData?.creator?.name}`
                     }
                     alt=""
                     className="rounded-full w-full h-full object-cover"
@@ -157,15 +157,15 @@ function BlogPage() {
             </Link>
             <div className="flex flex-col">
               <div className="flex items-center gap-1 ">
-                <Link to={`/@${blogData.creator.username}`}>
+                <Link to={`/@${blogData?.creator?.username}`}>
                   <h2 className="text-xl hover:underline cursor-pointer">
-                    {blogData.creator.name}
+                    {blogData.creator?.name}
                   </h2>
                 </Link>
                 {userId !== blogData.creator._id && (
                   <p
                     onClick={() =>
-                      handleFollowCreator(blogData.creator._id, token, dispatch)
+                      handleFollowCreator(blogData.creator?._id, token, dispatch)
                     }
                     className="text-xl my-2 font-medium text-green-700 cursor-pointer"
                   >
@@ -185,7 +185,7 @@ function BlogPage() {
 
           <img src={blogData.image} alt="" />
 
-          {token && email === blogData.creator.email && (
+          {token && email === blogData.creator?.email && (
             <Link to={"/edit/" + blogData.blogId}>
               <button className="bg-green-400 mt-5 px-6 py-2 text-xl rounded ">
                 Edit

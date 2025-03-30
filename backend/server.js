@@ -6,6 +6,10 @@ const blogRoute = require("./routes/blogRoutes");
 const cloudinaryConfig = require("./config/cloudinaryConfig");
 const { PORT, FRONTEND_URL } = require("./config/dotenv.config");
 const app = express();
+const path = require("path");
+require('dotenv').config();
+
+const _dirname = path.resolve();
 
 const port = PORT || 5000;
 
@@ -19,8 +23,14 @@ app.get("/", (req, res) => {
 app.use("/api/v1", userRoute);
 app.use("/api/v1", blogRoute);
 
+app.use(express.static(path.join(_dirname, "/frontend/dist")));
+app.get("*", (req, res) => {
+  res.sendFile(path.resolve(_dirname, "frontend", "dist", "index.html"));
+}
+);
+
 app.listen(port, () => {
-  console.log("Server Started");
+  console.log("Server Started at port", port);
   dbConnect();
   cloudinaryConfig();
 });

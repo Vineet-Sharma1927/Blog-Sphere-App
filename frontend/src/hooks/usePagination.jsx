@@ -4,7 +4,7 @@ import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import useLoader from "./useLoader";
 
-function usePagination(path, queryParams = {}, limit = 1, page = 1) {
+function usePagination(path, queryParams = {}, limit = 5, page = 1) {
   const [hasMore, setHasMore] = useState(true);
   const [blogs, setBlogs] = useState([]);
   const navigate = useNavigate();

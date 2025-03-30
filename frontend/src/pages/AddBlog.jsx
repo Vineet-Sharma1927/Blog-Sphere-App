@@ -46,7 +46,8 @@ function AddBlog() {
     formData.append("content", JSON.stringify(blogData.content));
     formData.append("tags", JSON.stringify(blogData.tags));
     formData.append("draft", blogData.draft);
-
+    
+    console.log(blogData)
     blogData.content.blocks.forEach((block) => {
       if (block.type === "image") {
         formData.append("images", block.data.file.image);
@@ -118,6 +119,7 @@ function AddBlog() {
       toast.success(res.data.message);
       navigate("/");
     } catch (error) {
+      console.log(error)
       toast.error(error.response.data.message);
     } finally {
       stopLoading();

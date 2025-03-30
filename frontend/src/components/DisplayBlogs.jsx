@@ -13,7 +13,7 @@ function DisplayBlogs({ blogs }) {
             <div key={blog._id} className="w-full my-10 flex justify-between max-xsm:flex-col ">
               <div className="w-[60%] flex flex-col gap-2 max-xsm:w-full">
                 <div className="flex items-center gap-2">
-                  <Link to={`/@${blog.creator.username}`}>
+                  <Link to={`/@${blog.creator?.username}`}>
                     <div>
                       <div className="w-6 h-6 cursor-pointer aspect-square rounded-full overflow-hidden">
                         <img
