@@ -2,9 +2,37 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { formatDate } from "../utils/formatDate";
 import { useSelector } from "react-redux";
+import axios from "axios";
+import toast from "react-hot-toast";
 
 function DisplayBlogs({ blogs }) {
   const { token, id: userId } = useSelector((state) => state.user);
+  
+  const handleSaveBlogs = async (blogId, token) => {
+    try {
+      if (!token) {
+        return toast.error("Please login to save blog");
+      }
+      
+      const res = await axios.patch(
+        `/api/blogs/save/${blogId}`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          }
+        }
+      );
+      
+      toast.success(res.data.message);
+      // Force reload to reflect changes
+      window.location.reload();
+    } catch (error) {
+      console.error("Save blog error:", error);
+      toast.error(error.response?.data?.message || "Failed to save blog");
+    }
+  };
+
   return (
     <div>
       {blogs.length > 0 ? (

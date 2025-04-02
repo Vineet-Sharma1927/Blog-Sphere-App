@@ -24,11 +24,12 @@ function AuthForm({ type }) {
 
     try {
       const res = await axios.post(
-        `${import.meta.env.VITE_BACKEND_URL}/${type}`,
+        `/api/${type}`,
         userData
       );
+      console.log(res)
 
-      if (type == "signup") {
+      if (type === "signup") {
         toast.success(res.data.message);
         navigate("/signin");
       } else {
@@ -37,7 +38,7 @@ function AuthForm({ type }) {
         navigate("/");
       }
     } catch (error) {
-      toast.error(error.response.data.message);
+      toast.error(error.response?.data?.message || "Something went wrong");
     } finally {
       setUserData({
         name: "",
@@ -57,7 +58,7 @@ function AuthForm({ type }) {
         const idToken = await userData.getIdToken();
 
         const res = await axios.post(
-          `${import.meta.env.VITE_BACKEND_URL}/google-auth`,
+          `/api/google-auth`,
           {
             accessToken: idToken,
           }
@@ -80,7 +81,7 @@ function AuthForm({ type }) {
         if (userData) {
           const idToken = await userData.getIdToken();
           const res = await axios.post(
-            `${import.meta.env.VITE_BACKEND_URL}/google-auth`,
+            `/api/google-auth`,
             {
               accessToken: idToken,
             }

@@ -29,22 +29,27 @@ function Comment() {
 
   async function handleComment() {
     try {
+      if (!token) {
+        return toast.error("Please login to add a comment");
+      }
+      
       let res = await axios.post(
-        `${import.meta.env.VITE_BACKEND_URL}/blogs/comment/${blogId}`,
+        `/api/blogs/comment/${blogId}`,
         {
           comment,
         },
         {
           headers: {
             Authorization: `Bearer ${token}`,
-          },
+          }
         }
       );
 
       setComment("");
       dispatch(setComments(res.data.newComment));
     } catch (error) {
-      toast.error(error.response.data.message);
+      console.error("Add comment error:", error);
+      toast.error(error.response?.data?.message || "Failed to add comment");
     }
   }
 
@@ -110,17 +115,19 @@ function DisplayComments({
 
   async function handleReply(parentCommentId) {
     try {
+      if (!token) {
+        return toast.error("Please login to reply to this comment");
+      }
+      
       let res = await axios.post(
-        `${
-          import.meta.env.VITE_BACKEND_URL
-        }/comment/${parentCommentId}/${blogId}`,
+        `/api/comment/${parentCommentId}/${blogId}`,
         {
           reply,
         },
         {
           headers: {
             Authorization: `Bearer ${token}`,
-          },
+          }
         }
       );
 
@@ -128,25 +135,33 @@ function DisplayComments({
       setActiveReply(null);
       dispatch(setReplies(res.data.newReply));
     } catch (error) {
-      toast.error(error.response.data.message);
+      console.error("Reply error:", error);
+      toast.error(error.response?.data?.message || "Failed to add reply");
     }
   }
 
   async function handleCommentLike(commentId) {
     try {
+      if (!token) {
+        return toast.error("Please login to like this comment");
+      }
+      
       const res = await axios.patch(
-        `${import.meta.env.VITE_BACKEND_URL}/blogs/like-comment/${commentId}`,
+        `/api/blogs/like-comment/${commentId}`,
         {},
         {
           headers: {
             Authorization: `Bearer ${token}`,
-          },
+          }
         }
       );
 
       toast.success(res.data.message);
       dispatch(setCommentLikes({ commentId, userId }));
-    } catch (error) {}
+    } catch (error) {
+      console.error("Comment like error:", error);
+      toast.error(error.response?.data?.message || "Failed to like comment");
+    }
   }
 
   function handleActiveReply(id) {
@@ -155,22 +170,31 @@ function DisplayComments({
 
   async function handleCommentUpdate(id) {
     try {
+      if (!token) {
+        return toast.error("Please login to edit this comment");
+      }
+      
+      if (!updatedCommentContent.trim()) {
+        return toast.error("Comment cannot be empty");
+      }
+      
       let res = await axios.patch(
-        `${import.meta.env.VITE_BACKEND_URL}/blogs/edit-comment/${id}`,
+        `/api/blogs/edit-comment/${id}`,
         {
           updatedCommentContent,
         },
         {
           headers: {
             Authorization: `Bearer ${token}`,
-          },
+          }
         }
       );
 
       toast.success(res.data.message);
       dispatch(setUpdatedComments(res.data.updatedComment));
     } catch (error) {
-      toast.success(error.response.data.message);
+      console.error("Update comment error:", error);
+      toast.error(error.response?.data?.message || "Failed to update comment");
     } finally {
       setUpdatedCommentContent("");
       setCurrentEditComment(null);
@@ -179,19 +203,24 @@ function DisplayComments({
 
   async function handleCommentDelete(id) {
     try {
+      if (!token) {
+        return toast.error("Please login to delete this comment");
+      }
+      
       let res = await axios.delete(
-        `${import.meta.env.VITE_BACKEND_URL}/blogs/comment/${id}`,
+        `/api/blogs/comment/${id}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
-          },
+          }
         }
       );
 
       toast.success(res.data.message);
       dispatch(deleteCommentAndReply(id));
     } catch (error) {
-      toast.success(error.response.data.message);
+      console.error("Delete comment error:", error);
+      toast.error(error.response?.data?.message || "Failed to delete comment");
     } finally {
       setUpdatedCommentContent("");
       setCurrentEditComment(null);

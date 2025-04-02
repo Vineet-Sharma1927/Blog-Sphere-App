@@ -16,40 +16,53 @@ import { updateData } from "../utils/userSilce";
 
 export async function handleSaveBlogs(id, token) {
   try {
+    if (!token) {
+      return toast.error("Please signin to save this blog");
+    }
+    
     let res = await axios.patch(
-      `${import.meta.env.VITE_BACKEND_URL}/save-blog/${id}`,
+      `/api/blogs/save/${id}`,
       {},
       {
         headers: {
           Authorization: `Bearer ${token}`,
-        },
+        }
       }
     );
     toast.success(res.data.message);
-
-    // dispatch(addSlectedBlog(blog));
+    return true;
   } catch (error) {
-    toast.error(error.response.data.message);
+    console.error("Save blog error:", error);
+    toast.error(error.response?.data?.message || "Failed to save blog");
+    return false;
   }
 }
 
 export async function handleFollowCreator(id, token, dispatch) {
   try {
+    if (!token) {
+      return toast.error("Please signin to follow this creator");
+    }
+    
     let res = await axios.patch(
-      `${import.meta.env.VITE_BACKEND_URL}/follow/${id}`,
+      `/api/users/follow/${id}`,
       {},
       {
         headers: {
           Authorization: `Bearer ${token}`,
-        },
+        }
       }
     );
     toast.success(res.data.message);
 
-    dispatch(updateData(["followers", id]));
+    if (dispatch) {
+      dispatch(updateData(["followers", id]));
+    }
+    return true;
   } catch (error) {
-    console.log(error);
-    toast.error(error.response.data.message);
+    console.error("Follow error:", error);
+    toast.error(error.response?.data?.message || "Failed to follow creator");
+    return false;
   }
 }
 
@@ -83,7 +96,7 @@ function BlogPage() {
     try {
       let {
         data: { blog },
-      } = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/blogs/${id}`);
+      } = await axios.get(`/api/blogs/${id}`);
       setBlogData(blog);
       setIsBlogSaved(blog?.totalSaves?.includes(userId));
 
@@ -93,27 +106,35 @@ function BlogPage() {
         setIsLike((prev) => !prev);
       }
     } catch (error) {
-      toast.error(error);
+      console.error("Fetch blog error:", error);
+      toast.error(error.response?.data?.message || "Failed to load blog");
     }
   }
 
   async function handleLike() {
-    if (token) {
+    if (!token) {
+      return toast.error("Please signin to like this blog");
+    }
+    
+    try {
       setIsLike((prev) => !prev);
 
       let res = await axios.post(
-        `${import.meta.env.VITE_BACKEND_URL}/blogs/like/${blogData._id}`,
+        `/api/blogs/like/${blogData._id}`,
         {},
         {
           headers: {
             Authorization: `Bearer ${token}`,
-          },
+          }
         }
       );
       dispatch(changeLikes(userId));
       toast.success(res.data.message);
-    } else {
-      return toast.error("Please signin to like this blog");
+    } catch (error) {
+      // Revert like status if there's an error
+      setIsLike((prev) => !prev);
+      console.error("Like blog error:", error);
+      toast.error(error.response?.data?.message || "Failed to like blog");
     }
   }
 

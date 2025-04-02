@@ -1,7 +1,7 @@
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
-import { Link, Navigate, useLocation, useParams } from "react-router-dom";
+import { Link, Navigate, useLocation, useParams, useNavigate } from "react-router-dom";
 import { handleFollowCreator } from "./BlogPage";
 import { useSelector, useDispatch } from "react-redux";
 import DisplayBlogs from "../components/DisplayBlogs";
@@ -9,20 +9,25 @@ import DisplayBlogs from "../components/DisplayBlogs";
 function ProfilePage() {
   const { username } = useParams();
   const [userData, setUserData] = useState(null);
-  const { token, id: userId, following } = useSelector((state) => state.user);
+  const { token, id: userId = null, following = [] } = useSelector((state) => state.user);
   const location = useLocation();
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   function renderComponent() {
+    if (!userData) {
+      return <p>Loading...</p>;
+    }
+
     if (location.pathname === `/${username}`) {
       return (
-        <DisplayBlogs blogs={userData.blogs.filter((blog) => !blog.draft)} />
+        <DisplayBlogs blogs={userData.blogs?.filter((blog) => !blog.draft) || []} />
       );
     } else if (location.pathname === `/${username}/saved-blogs`) {
       return (
         <>
           {userData.showSavedBlogs || userData._id === userId ? (
-            <DisplayBlogs blogs={userData.saveBlogs} />
+            <DisplayBlogs blogs={userData.saveBlogs || []} />
           ) : (
             <Navigate to={`/${username}`} />
           )}
@@ -32,7 +37,7 @@ function ProfilePage() {
       return (
         <>
           {userData._id === userId ? (
-            <DisplayBlogs blogs={userData.blogs.filter((blog) => blog.draft)} />
+            <DisplayBlogs blogs={userData.blogs?.filter((blog) => blog.draft) || []} />
           ) : (
             <Navigate to={`/${username}`} />
           )}
@@ -42,7 +47,7 @@ function ProfilePage() {
       return (
         <>
           {userData.showLikedBlogs || userData._id === userId ? (
-            <DisplayBlogs blogs={userData.likeBlogs} />
+            <DisplayBlogs blogs={userData.likeBlogs || []} />
           ) : (
             <Navigate to={`/${username}`} />
           )}
@@ -55,15 +60,22 @@ function ProfilePage() {
     async function fetchUserDetails() {
       try {
         let res = await axios.get(
-          `${import.meta.env.VITE_BACKEND_URL}/users/${username.split("@")[1]}`
+          `/api/users/${username.split("@")[1]}`
         );
         setUserData(res.data.user);
       } catch (error) {
-        toast.error(error.response.data.message);
+        console.error("Fetch user error:", error);
+        toast.error(error.response?.data?.message || "Failed to load user profile");
       }
     }
-    fetchUserDetails();
-  }, [username]);
+    
+    if (username && username.includes('@')) {
+      fetchUserDetails();
+    } else {
+      // If no valid username or user logged out, redirect to home
+      navigate('/');
+    }
+  }, [username, navigate]);
 
   return (
     <div className="w-full  flex justify-center">
@@ -173,7 +185,7 @@ function ProfilePage() {
                   }
                   className="bg-green-600 px-7 py-3 rounded-full max-lg:w-full text-white my-3"
                 >
-                  {!following.includes(userData?._id) ? "Follow" : "Following"}
+                  {following && !following.includes(userData?._id) ? "Follow" : "Following"}
                 </button>
               )}
 
@@ -181,8 +193,8 @@ function ProfilePage() {
                 <h2 className="font-semibold">Following</h2>
 
                 <div className="my-5 ">
-                  {userData?.following?.length > 0 ? (
-                    userData?.following?.map((user) => (
+                  {userData?.following && userData.following.length > 0 ? (
+                    userData.following.map((user) => (
                       <div className="flex justify-between items-center">
                         <Link to={`/@${user.username}`}>
                           <div className="flex gap-2 items-center hover:underline cursor-pointer">

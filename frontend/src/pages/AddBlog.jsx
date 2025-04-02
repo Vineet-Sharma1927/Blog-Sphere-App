@@ -57,19 +57,19 @@ function AddBlog() {
     try {
       startLoading();
       const res = await axios.post(
-        `${import.meta.env.VITE_BACKEND_URL}/blogs`,
+        `/api/blogs`,
         formData,
         {
           headers: {
             "Content-Type": "multipart/form-data",
             Authorization: `Bearer ${token}`,
-          },
+          }
         }
       );
       toast.success(res.data.message);
       navigate("/");
     } catch (error) {
-      toast.error(error.response.data.message);
+      toast.error(error.response?.data?.message || "Failed to post blog");
     } finally {
       stopLoading();
     }
@@ -78,49 +78,56 @@ function AddBlog() {
   async function handleUpdateBlog() {
     let formData = new FormData();
 
-    formData.append("title", blogData.title);
-    formData.append("description", blogData.description);
-    formData.append("image", blogData.image);
+    formData.append("title", blogData.title || "");
+    formData.append("description", blogData.description || "");
+    if (blogData.image) {
+      formData.append("image", blogData.image);
+    }
 
-    formData.append("content", JSON.stringify(blogData.content));
+    // Safely handle content - ensure it exists before stringifying
+    const contentToSave = blogData.content || { blocks: [] };
+    formData.append("content", JSON.stringify(contentToSave));
 
-    formData.append("tags", JSON.stringify(blogData.tags));
-    formData.append("draft", blogData.draft);
+    formData.append("tags", JSON.stringify(blogData.tags || []));
+    formData.append("draft", blogData.draft || false);
     let existingImages = [];
 
-    blogData.content.blocks.forEach((block) => {
-      if (block.type === "image") {
-        if (block.data.file.image) {
-          formData.append("images", block.data.file.image);
-        } else {
-          existingImages.push({
-            url: block.data.file.url,
-            imageId: block.data.file.imageId,
-          });
+    // Only process blocks if content exists and has blocks
+    if (contentToSave.blocks && Array.isArray(contentToSave.blocks)) {
+      contentToSave.blocks.forEach((block) => {
+        if (block.type === "image" && block.data && block.data.file) {
+          if (block.data.file.image) {
+            formData.append("images", block.data.file.image);
+          } else if (block.data.file.url) {
+            existingImages.push({
+              url: block.data.file.url,
+              imageId: block.data.file.imageId,
+            });
+          }
         }
-      }
-    });
+      });
+    }
 
     formData.append("existingImages", JSON.stringify(existingImages));
 
     try {
       startLoading();
       const res = await axios.patch(
-        `${import.meta.env.VITE_BACKEND_URL}/blogs/` + id,
+        `/api/blogs/${id}`,
         formData,
         {
           headers: {
             "Content-Type": "multipart/form-data",
             Authorization: `Bearer ${token}`,
-          },
+          }
         }
       );
 
       toast.success(res.data.message);
       navigate("/");
     } catch (error) {
-      console.log(error)
-      toast.error(error.response.data.message);
+      console.log(error);
+      toast.error(error.response?.data?.message || "Failed to update blog");
     } finally {
       stopLoading();
     }

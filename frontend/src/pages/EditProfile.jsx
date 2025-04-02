@@ -52,28 +52,31 @@ function EditProfile() {
     const formData = new FormData();
     formData.append("name", userData.name);
     formData.append("username", userData.username);
-    if (userData.profilePic) {
+    if (userData.profilePic && typeof userData.profilePic !== "string") {
       formData.append("profilePic", userData.profilePic);
     }
-    formData.append("bio", userData.bio);
+    formData.append("bio", userData.bio || "");
 
     try {
       const res = await axios.patch(
-        `${import.meta.env.VITE_BACKEND_URL}/users/${userId}`,
+        `/api/users/${userId}`,
         formData,
         {
           headers: {
             "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${token}`,
-          },
+            Authorization: `Bearer ${token}`
+          }
         }
       );
       toast.success(res.data.message);
       dispatch(login({ ...res.data.user, token, email, id: userId }));
+      navigate(`/@${res.data.user.username}`);
     } catch (error) {
-      toast.error(error.response.data.message);
+      console.error("Profile update error:", error);
+      toast.error(error.response?.data?.message || "Failed to update profile");
     } finally {
       stopLoading();
+      setIsButtonDisabled(false);
     }
   }
 

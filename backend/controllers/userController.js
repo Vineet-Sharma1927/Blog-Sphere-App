@@ -10,35 +10,36 @@ const {
   deleteImagefromCloudinary,
   uploadImage,
 } = require("../utils/uploadImage");
-// const {
-//   FIREBASE_TYPE,
-//   FIREBASE_PROJECT_ID,
-//   FIREBASE_PRIVATE_KEY_ID,
-//   FIREBASE_PRIVATE_KEY,
-//   FIREBASE_CLIENT_EMAIL,
-//   FIREBASE_CLIENT_ID,
-//   FIREBASE_AUTH_URI,
-//   FIREBASE_TOKEN_URI,
-//   FIREBASE_AUTH_PROVIDER_X509_CERT_URL,
-//   FIREBASE_CLIENT_X509_CERT_URL,
-//   FIREBASE_UNIVERSAL_DOMAIN,
-//   EMAIL_USER,
-//   FRONTEND_URL,
-// } = require("../config/dotenv.config");
+const {
+  FIREBASE_TYPE,
+  FIREBASE_PROJECT_ID,
+  FIREBASE_PRIVATE_KEY_ID,
+  FIREBASE_PRIVATE_KEY,
+  FIREBASE_CLIENT_EMAIL,
+  FIREBASE_CLIENT_ID,
+  FIREBASE_AUTH_URI,
+  FIREBASE_TOKEN_URI,
+  FIREBASE_AUTH_PROVIDER_X509_CERT_URL,
+  FIREBASE_CLIENT_X509_CERT_URL,
+  FIREBASE_UNIVERSAL_DOMAIN,
+  EMAIL_USER,
+  FRONTEND_URL,
+} = require("../config/dotenv.config");
+console.log(FIREBASE_UNIVERSAL_DOMAIN)
 
 admin.initializeApp({
   credential: admin.credential.cert({
-    type: "service_account",
-  project_id: "blog-app-6e6f8",
-  private_key_id: "92bd24734d60a4e082c7c2886bfa2a267dee8905",
+    type: FIREBASE_TYPE,
+  project_id: FIREBASE_PROJECT_ID,
+  private_key_id: FIREBASE_PRIVATE_KEY_ID,
   private_key: "-----BEGIN PRIVATE KEY-----\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQCvJkVeJ+OVfaF9\ngZPZbTTCH2jNsUqp3KWK0Ze84Xg+NzOB7yV3BIKOCfkJd96+bwHHOTtDvlaKwDlm\n7X+Pu1iS/T7sDpqEERE2taA0hTTxg68pgrFIc4XTIEIDxC34fmxB1sNOTeQBis0+\nP9BS9ASusfC1V9jZmiRXkOGISUPB3pXPjxLNdWmX76MHMjJ39CvrZyzGvFkGqg+C\nVB/ayHzllyEKbTDlldwKPsFWlT6s3BEKj7RVnD+ALSs436FMdHzgF0wInonPB4LN\nd04dHWhl+KtoZ4qw4x0pS8aqsfvJo6eQ/PCCYRxOUjgp2wPNLJAjqkcbHlCAEPM1\nn4YA6hLtAgMBAAECgf8jEEZS0yl8g+oQdiBjJrmpIyCYDSYlW0bIw6zc40ZvLh3h\npT6a1QxN4zE39AdjmFWCzLJQnYo1vMXBFUq0O40/3/L4zvOf/Mq1aSbpXMF8mCA4\n7zEOkBH6cjrFBkEtviFuDNCMnItIw8DS9XN/J9rIHldR9oQzC+i6nwaHgiNObCtA\nl1eSkGCD5KEN9yhM2+NjWIkDLKA6sa40pwzbiPlVJs/27r1aeobOQhUbEK8eMJ6W\noVREPnKdzn82gixmhvJnUwTBZdp+5fttakNWx5JDpecWgNhFBhxrgP62bKzKIJ68\nGLcszVJ3CKEyuG7GjecZ3kFVYd4VV6bUQ8RCvOkCgYEA93+HUyvCwps8QsHGP486\nw6L7V1X5jRKzeqsNzAqfzWk54Cdtb4GJDGpekJxhYQv456qqzFz3fAl5kpJYt7Si\nf62WfSli/ma5jCeNlIdsq4blhYyg4Uny/VgNT6Y6kIUmRoQYCJT/y1nv+WIthPAI\nMoWTEQ8Qp0aAzBqQOWGMz8UCgYEAtSqEJ7Ylys5lOxG/zp23N5hsN42vX8pnbCHJ\na31QPUJLC9uIGd/WdsopLak7KOOzxVSoIK6Zs+1QYFuSuBixCMhAQpw3QQMk3UtD\n70MO2CAqCnSYywExqDcR7xFbQjy8RQRRzFiwAPKbN2DHEP2s1zjVvmfGuaFpg+hH\nBBD7AQkCgYEA8UFzHHPv6duApmJVaeeolMPu1XeNRyMPqWfMjzVcCNOmAwbr+mH+\nwgd+HuERW5RcERegXo3RASwLQgE+UfTW4jbIF0Gcqfhgrmpv7HUGTT21xrUKrhFz\nt9l5QEb9l5rzcJGbC+KSZhtJfYNic8+3begfL+XLigOD0XGjXQvmQzECgYAZLiii\nMGH+V0Oguy3StP8jPg9EhW/ru4E2eVe6lfdSHGW75y56ki8H4b9pdk0fuM5izgp0\nSHBantB+JBw3dE8e7l5oI7hWU+6Kx4xQtBxbE9VkEKKwDKFvRQA8H0h042YznY8U\n/PqxlwbV4qCojum4HFExHtFzOaklyWIdgZKxqQKBgQCDwBwqHHlJfJ+uXzXcUHzB\nhH2DMuV/OvoIv/0Kh5NpytNDkrC71VinlFfFK6GmYZwLfoCLqBfGZRtuLHb6g6Xx\ncMjjnVCkIHqwWdm0OYEKV/FY9dfeTRz1yMvGvkpZVdNSVERWKAjsyxahTpUPxi8l\nK1BLEFAKb4BWBFhdDqFbMQ==\n-----END PRIVATE KEY-----\n",
-  client_email: "firebase-adminsdk-fbsvc@blog-app-6e6f8.iam.gserviceaccount.com",
-  client_id: "110596842668161224264",
-  auth_uri: "https://accounts.google.com/o/oauth2/auth",
-  token_uri: "https://oauth2.googleapis.com/token",
-  auth_provider_x509_cert_url: "https://www.googleapis.com/oauth2/v1/certs",
-  client_x509_cert_url: "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-fbsvc%40blog-app-6e6f8.iam.gserviceaccount.com",
-  universe_domain: "googleapis.com"
+  client_email: FIREBASE_CLIENT_EMAIL,
+  client_id: FIREBASE_CLIENT_ID,
+  auth_uri: FIREBASE_AUTH_URI,
+  token_uri: FIREBASE_TOKEN_URI,
+  auth_provider_x509_cert_url: FIREBASE_AUTH_PROVIDER_X509_CERT_URL,
+  client_x509_cert_url: FIREBASE_CLIENT_X509_CERT_URL,
+  universe_domain: FIREBASE_UNIVERSAL_DOMAIN
   }),
 });
 
@@ -95,7 +96,7 @@ async function createUser(req, res) {
           subject: "Email Verification",
           text: "Please verify your email",
           html: `<h1>Click on the link to verify your email</h1>
-              <a href="${FRONTEND_URL}/verify-email/${verificationToken}">Verify Email</a>`,
+              <a href="${FRONTEND_URL.replace(/\/$/, '')}/verify-email/${verificationToken}">Verify Email</a>`,
         });
 
         return res.status(200).json({
@@ -128,7 +129,7 @@ async function createUser(req, res) {
       subject: "Email Verification",
       text: "Please verify your email",
       html: `<h1>Click on the link to verify your email</h1>
-      <a href="${FRONTEND_URL}/verify-email/${verificationToken}">Verify Email</a>`,
+      <a href="${FRONTEND_URL.replace(/\/$/, '')}/verify-email/${verificationToken}">Verify Email</a>`,
     });
 
     return res.status(200).json({
@@ -331,7 +332,7 @@ async function login(req, res) {
         subject: "Email Verification",
         text: "Please verify your email",
         html: `<h1>Click on the link to verify your email</h1>
-        <a href="${FRONTEND_URL}/verify-email/${verificationToken}">Verify Email</a>`,
+        <a href="${FRONTEND_URL.replace(/\/$/, '')}/verify-email/${verificationToken}">Verify Email</a>`,
       });
 
       return res.status(400).json({

@@ -37,6 +37,8 @@ route.post("/google-auth", googleAuth);
 
 // follow /unfollow
 route.patch("/follow/:id", verifyUser, followUser);
+// Add an alias for the new frontend route
+route.patch("/users/follow/:id", verifyUser, followUser);
 
 route.patch("/change-saved-liked-blog-visibility" , verifyUser , changeSavedLikedBlog)
 

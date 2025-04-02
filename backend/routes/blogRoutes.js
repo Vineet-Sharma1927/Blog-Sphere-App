@@ -60,11 +60,15 @@ route.patch("/blogs/like-comment/:id", verifyUser, likeComment);
 
 // for nested comment
 route.post("/comment/:parentCommentId/:id", verifyUser, addNestedComment);
+// Add alias for the new frontend route
+route.post("/blogs/comment/:parentCommentId/:id", verifyUser, addNestedComment);
 
 route.get("/search-blogs", searchBlogs)
 
 
 // save blog / bookmark blog
 route.patch("/save-blog/:id", verifyUser, saveBlog);
+// Add an alias for the new frontend route
+route.patch("/blogs/save/:id", verifyUser, saveBlog);
 
 module.exports = route;

@@ -14,7 +14,7 @@ function usePagination(path, queryParams = {}, limit = 5, page = 1) {
       try {
         startLoading();
         let res = await axios.get(
-          `${import.meta.env.VITE_BACKEND_URL}/${path}`,
+          `/api/${path}`,
           {
             params: { ...queryParams, limit, page },
           }
@@ -22,9 +22,10 @@ function usePagination(path, queryParams = {}, limit = 5, page = 1) {
         setBlogs((prev) => [...prev, ...res.data.blogs]);
         setHasMore(res?.data?.hasMore);
       } catch (error) {
+        console.error("Pagination error:", error);
         navigate(-1);
         setBlogs([]);
-        toast.error(error?.response?.data?.message);
+        toast.error(error?.response?.data?.message || "Failed to load content");
         setHasMore(false);
       } finally {
         stopLoading();
