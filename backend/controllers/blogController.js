@@ -110,8 +110,11 @@ async function createBlog(req, res) {
 
 async function getBlogs(req, res) {
   try {
-    const page = parseInt(req.query.page);
-    const limit = parseInt(req.query.limit);
+    console.log("GET /blogs endpoint hit");
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    console.log(`Page: ${page}, Limit: ${limit}`);
+    
     const skip = (page - 1) * limit;
 
     const blogs = await Blog.find({ draft: false })
@@ -127,7 +130,9 @@ async function getBlogs(req, res) {
       .skip(skip)
       .limit(limit);
 
+    console.log(`Found ${blogs.length} blogs`);
     const totalBlogs = await Blog.countDocuments({ draft: false });
+    console.log(`Total blogs: ${totalBlogs}`);
 
     return res.status(200).json({
       message: "Blogs fetched Successfully",
@@ -135,6 +140,7 @@ async function getBlogs(req, res) {
       hasMore: skip + limit < totalBlogs,
     });
   } catch (error) {
+    console.error("Error fetching blogs:", error);
     return res.status(500).json({
       message: error.message,
     });

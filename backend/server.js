@@ -15,7 +15,7 @@ const port = PORT || 5000;
 
 app.use(express.json());
 app.use(cors({
-  origin: [FRONTEND_URL, "https://your-vercel-domain.vercel.app", "https://blog-sphere-app-kappa.vercel.app/", "*"],
+  origin: [FRONTEND_URL, "https://your-vercel-domain.vercel.app", "https://blog-sphere-app-kappa.vercel.app", "*"],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
@@ -26,14 +26,29 @@ app.get("/api/health", (req, res) => {
   res.status(200).json({ status: "ok", message: "Server is running" });
 });
 
+// Test endpoint to check API connectivity
+app.get("/api/v1/test", (req, res) => {
+  res.status(200).json({ 
+    status: "ok", 
+    message: "API is accessible",
+    env: {
+      nodeEnv: process.env.NODE_ENV,
+      frontendUrl: FRONTEND_URL,
+      port: port
+    }
+  });
+});
+
 // API routes
 app.use("/api/v1", userRoute);
 app.use("/api/v1", blogRoute);
 
-// Handle API routes for Vercel
-app.all("/api/*", (req, res) => {
-  const path = req.path.replace("/api", "/api/v1");
-  app.handle(req, res, path);
+// Handle API routes - fix the app.handle approach which may be causing issues
+app.all("/api/*", (req, res, next) => {
+  if (!req.path.startsWith('/api/v1')) {
+    req.url = req.url.replace(/^\/api/, '/api/v1');
+  }
+  next();
 });
 
 // Comment out or remove frontend serving code since frontend is deployed separately

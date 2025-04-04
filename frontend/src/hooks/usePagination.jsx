@@ -9,16 +9,23 @@ function usePagination(path, queryParams = {}, limit = 5, page = 1) {
   const [blogs, setBlogs] = useState([]);
   const navigate = useNavigate();
   const [isLoading, startLoading, stopLoading] = useLoader();
+  
   useEffect(() => {
     async function fetchSeachBlogs() {
       try {
         startLoading();
+        console.log(`Fetching from ${import.meta.env.VITE_BACKEND_URL}/${path} with params:`, { ...queryParams, limit, page });
+        
         let res = await axios.get(
-          `/api/${path}`,
+          `${import.meta.env.VITE_BACKEND_URL}/${path}`,
           {
             params: { ...queryParams, limit, page },
+            withCredentials: true
           }
         );
+        
+        console.log('API response:', res.data);
+        
         if (Array.isArray(res.data.blogs)) {
           setBlogs((prev) => [...prev, ...res.data.blogs]);
           setHasMore(res?.data?.hasMore);
@@ -30,9 +37,14 @@ function usePagination(path, queryParams = {}, limit = 5, page = 1) {
         }
       } catch (error) {
         console.error("Pagination error:", error);
-        navigate(-1);
-        setBlogs([]);
-        toast.error(error?.response?.data?.message || "Failed to load content");
+        console.error("Error details:", error.response || error.message);
+        if (error.response?.status === 404) {
+          toast.error("API endpoint not found. Check your backend URL.");
+        } else {
+          navigate(-1);
+          setBlogs([]);
+          toast.error(error?.response?.data?.message || "Failed to load content");
+        }
         setHasMore(false);
       } finally {
         stopLoading();
@@ -41,7 +53,7 @@ function usePagination(path, queryParams = {}, limit = 5, page = 1) {
     fetchSeachBlogs();
   }, [page]);
 
-  return { blogs, hasMore , isLoading};
+  return { blogs, hasMore, isLoading };
 }
 
 export default usePagination;
