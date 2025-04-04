@@ -21,7 +21,7 @@ export async function handleSaveBlogs(id, token) {
     }
     
     let res = await axios.patch(
-      `/api/v1/blogs/save/${id}`,
+      `${import.meta.env.VITE_BACKEND_URL}/api/v1/blogs/save/${id}`,
       {},
       {
         headers: {
@@ -45,7 +45,7 @@ export async function handleFollowCreator(id, token, dispatch) {
     }
     
     let res = await axios.patch(
-      `/api/v1/users/follow/${id}`,
+      `${import.meta.env.VITE_BACKEND_URL}/api/v1/users/follow/${id}`,
       {},
       {
         headers: {
@@ -96,7 +96,7 @@ function BlogPage() {
     try {
       let {
         data: { blog },
-      } = await axios.get(`/api/v1/blogs/${id}`);
+      } = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/v1/blogs/${id}`);
       setBlogData(blog);
       setIsBlogSaved(blog?.totalSaves?.includes(userId));
 
@@ -120,7 +120,7 @@ function BlogPage() {
       setIsLike((prev) => !prev);
 
       let res = await axios.post(
-        `/api/v1/blogs/like/${blogData._id}`,
+        `${import.meta.env.VITE_BACKEND_URL}/api/v1/blogs/like/${blogData._id}`,
         {},
         {
           headers: {

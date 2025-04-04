@@ -14,7 +14,7 @@ function DisplayBlogs({ blogs }) {
         return toast.error("Please login to save blog");
       }
       
-      const res = await axios.patch(
+      const res = awaitpatch(
         `/api/v1/blogs/save/${blogId}`,
         {},
         {

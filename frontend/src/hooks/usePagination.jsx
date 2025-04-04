@@ -14,7 +14,7 @@ function usePagination(path, queryParams = {}, limit = 5, page = 1) {
       try {
         startLoading();
         let res = await axios.get(
-          `/api/v1/${path}`,
+          `${import.meta.env.VITE_BACKEND_URL}/api/v1/${path}`,
           {
             params: { ...queryParams, limit, page },
           }

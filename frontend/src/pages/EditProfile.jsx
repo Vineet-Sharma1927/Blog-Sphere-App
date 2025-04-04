@@ -59,7 +59,7 @@ function EditProfile() {
 
     try {
       const res = await axios.patch(
-        `/api/v1/users/${userId}`,
+        `${import.meta.env.VITE_BACKEND_URL}/api/v1/users/${userId}`,
         formData,
         {
           headers: {

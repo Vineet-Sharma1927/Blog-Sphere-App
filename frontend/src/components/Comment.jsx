@@ -34,7 +34,7 @@ function Comment() {
       }
       
       let res = await axios.post(
-        `/api/v1/blogs/comment/${blogId}`,
+        `${import.meta.env.VITE_BACKEND_URL}/api/v1/blogs/comment/${blogId}`,
         {
           comment,
         },
@@ -120,7 +120,7 @@ function DisplayComments({
       }
       
       let res = await axios.post(
-        `/api/v1/blogs/comment/${parentCommentId}/${blogId}`,
+        `${import.meta.env.VITE_BACKEND_URL}/api/v1/blogs/comment/${parentCommentId}/${blogId}`,
         {
           reply,
         },
@@ -147,7 +147,7 @@ function DisplayComments({
       }
       
       const res = await axios.patch(
-        `/api/v1/blogs/like-comment/${commentId}`,
+        `${import.meta.env.VITE_BACKEND_URL}/api/v1/blogs/like-comment/${commentId}`,
         {},
         {
           headers: {
@@ -179,7 +179,7 @@ function DisplayComments({
       }
       
       let res = await axios.patch(
-        `/api/v1/blogs/edit-comment/${id}`,
+        `${import.meta.env.VITE_BACKEND_URL}/api/v1/blogs/edit-comment/${id}`,
         {
           updatedCommentContent,
         },
@@ -208,11 +208,11 @@ function DisplayComments({
       }
       
       let res = await axios.delete(
-        `/api/v1/blogs/comment/${id}`,
+        `${import.meta.env.VITE_BACKEND_URL}/api/v1/blogs/comment/${id}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
-          }
+          } 
         }
       );
 
