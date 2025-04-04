@@ -19,8 +19,15 @@ function usePagination(path, queryParams = {}, limit = 5, page = 1) {
             params: { ...queryParams, limit, page },
           }
         );
-        setBlogs((prev) => [...prev, ...res.data.blogs]);
-        setHasMore(res?.data?.hasMore);
+        if (Array.isArray(res.data.blogs)) {
+          setBlogs((prev) => [...prev, ...res.data.blogs]);
+          setHasMore(res?.data?.hasMore);
+        } else {
+          console.error("Received non-array blogs data:", res.data);
+          setBlogs([]);
+          setHasMore(false);
+          toast.error("Error loading blogs. Please try again.");
+        }
       } catch (error) {
         console.error("Pagination error:", error);
         navigate(-1);

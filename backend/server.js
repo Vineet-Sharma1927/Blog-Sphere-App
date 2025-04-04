@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require("express");
 const cors = require("cors");
 const dbConnect = require("./config/dbConnect");
@@ -7,7 +8,6 @@ const cloudinaryConfig = require("./config/cloudinaryConfig");
 const { PORT, FRONTEND_URL } = require("./config/dotenv.config");
 const app = express();
 const path = require("path");
-require('dotenv').config();
 
 const _dirname = path.resolve();
 
