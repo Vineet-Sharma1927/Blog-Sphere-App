@@ -4,6 +4,9 @@ import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import useLoader from "./useLoader";
 
+// Configure axios defaults
+axios.defaults.withCredentials = true;
+
 function usePagination(path, queryParams = {}, limit = 5, page = 1) {
   const [hasMore, setHasMore] = useState(true);
   const [blogs, setBlogs] = useState([]);
@@ -14,42 +17,54 @@ function usePagination(path, queryParams = {}, limit = 5, page = 1) {
     async function fetchSeachBlogs() {
       try {
         startLoading();
-        console.log(`Fetching from ${import.meta.env.VITE_BACKEND_URL}/${path} with params:`, { ...queryParams, limit, page });
         
-        let res = await axios.get(
-          `${import.meta.env.VITE_BACKEND_URL}/${path}`,
-          {
-            params: { ...queryParams, limit, page },
-            withCredentials: true
+        // Determine API URL based on environment
+        const baseUrl = import.meta.env.DEV 
+          ? "" // Empty for local development (will use proxy)
+          : import.meta.env.VITE_BACKEND_URL || "";
+          
+        console.log(`Attempting to fetch from ${baseUrl}/api/${path}`);
+        
+        // Make the API request with simple configuration
+        const response = await fetch(`${baseUrl}/api/${path}?page=${page}&limit=${limit}${
+          Object.keys(queryParams).length > 0 
+            ? '&' + new URLSearchParams(queryParams).toString() 
+            : ''
+        }`, {
+          method: 'GET',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
           }
-        );
+        });
         
-        console.log('API response:', res.data);
+        // Parse the JSON response
+        const data = await response.json();
+        console.log('API response data:', data);
         
-        if (Array.isArray(res.data.blogs)) {
-          setBlogs((prev) => [...prev, ...res.data.blogs]);
-          setHasMore(res?.data?.hasMore);
+        if (!response.ok) {
+          throw new Error(data.message || 'Failed to fetch blogs');
+        }
+        
+        // Check if blogs is an array before setting state
+        if (Array.isArray(data.blogs)) {
+          setBlogs(prev => [...prev, ...data.blogs]);
+          setHasMore(data.hasMore === true);
         } else {
-          console.error("Received non-array blogs data:", res.data);
-          setBlogs([]);
+          console.error('Received non-array blogs data:', data);
+          toast.error('Received invalid data from server');
           setHasMore(false);
-          toast.error("Error loading blogs. Please try again.");
         }
       } catch (error) {
         console.error("Pagination error:", error);
-        console.error("Error details:", error.response || error.message);
-        if (error.response?.status === 404) {
-          toast.error("API endpoint not found. Check your backend URL.");
-        } else {
-          navigate(-1);
-          setBlogs([]);
-          toast.error(error?.response?.data?.message || "Failed to load content");
-        }
+        toast.error(error.message || "Failed to load content");
         setHasMore(false);
       } finally {
         stopLoading();
       }
     }
+    
     fetchSeachBlogs();
   }, [page]);
 

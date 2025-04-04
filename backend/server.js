@@ -15,29 +15,28 @@ const port = PORT || 5000;
 
 app.use(express.json());
 app.use(cors({
-  origin: [FRONTEND_URL, "https://your-vercel-domain.vercel.app", "https://blog-sphere-app-kappa.vercel.app", "*"],
+  origin: function(origin, callback) {
+    // Allow requests with no origin (like mobile apps, curl requests)
+    if(!origin) return callback(null, true);
+    
+    const allowedOrigins = [
+      FRONTEND_URL, 
+      "http://localhost:3000", 
+      "http://localhost:5173", 
+      "https://blog-sphere-app-kappa.vercel.app"
+    ];
+    
+    if(allowedOrigins.indexOf(origin) !== -1 || !origin) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true
+  credentials: true,
+  exposedHeaders: ['set-cookie']
 }));
-
-// Health check endpoint for Vercel
-app.get("/api/health", (req, res) => {
-  res.status(200).json({ status: "ok", message: "Server is running" });
-});
-
-// Test endpoint to check API connectivity
-app.get("/api/v1/test", (req, res) => {
-  res.status(200).json({ 
-    status: "ok", 
-    message: "API is accessible",
-    env: {
-      nodeEnv: process.env.NODE_ENV,
-      frontendUrl: FRONTEND_URL,
-      port: port
-    }
-  });
-});
 
 // API routes
 app.use("/api/v1", userRoute);
