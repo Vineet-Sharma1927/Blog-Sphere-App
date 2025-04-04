@@ -15,7 +15,7 @@ const port = PORT || 5000;
 
 app.use(express.json());
 app.use(cors({
-  origin: [FRONTEND_URL, "https://your-vercel-domain.vercel.app"],
+  origin: [FRONTEND_URL, "https://your-vercel-domain.vercel.app", "https://blog-sphere-app-kappa.vercel.app/", "*"],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
@@ -36,17 +36,17 @@ app.all("/api/*", (req, res) => {
   app.handle(req, res, path);
 });
 
-// Serve frontend in production
-if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(_dirname, "/frontend/dist")));
-  app.get("*", (req, res) => {
-    res.sendFile(path.resolve(_dirname, "frontend", "dist", "index.html"));
-  });
-} else {
+// Comment out or remove frontend serving code since frontend is deployed separately
+// if (process.env.NODE_ENV === 'production') {
+//   app.use(express.static(path.join(_dirname, "/frontend/dist")));
+//   app.get("*", (req, res) => {
+//     res.sendFile(path.resolve(_dirname, "frontend", "dist", "index.html"));
+//   });
+// } else {
   app.get("/", (req, res) => {
     res.send("API is running...");
   });
-}
+// }
 
 // Start server if not on Vercel
 if (process.env.VERCEL !== "1") {
