@@ -24,7 +24,7 @@ function AuthForm({ type }) {
 
     try {
       const res = await axios.post(
-        `/api/${type}`,
+        `/api/v1/${type}`,
         userData
       );
       console.log(res)
@@ -58,7 +58,7 @@ function AuthForm({ type }) {
         const idToken = await userData.getIdToken();
 
         const res = await axios.post(
-          `/api/google-auth`,
+          `/api/v1/google-auth`,
           {
             accessToken: idToken,
           }
@@ -81,7 +81,7 @@ function AuthForm({ type }) {
         if (userData) {
           const idToken = await userData.getIdToken();
           const res = await axios.post(
-            `/api/google-auth`,
+            `/api/v1/google-auth`,
             {
               accessToken: idToken,
             }

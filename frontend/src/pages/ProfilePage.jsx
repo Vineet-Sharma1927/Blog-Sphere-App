@@ -60,7 +60,7 @@ function ProfilePage() {
     async function fetchUserDetails() {
       try {
         let res = await axios.get(
-          `/api/users/${username.split("@")[1]}`
+          `/api/v1/users/${username.split("@")[1]}`
         );
         setUserData(res.data.user);
       } catch (error) {

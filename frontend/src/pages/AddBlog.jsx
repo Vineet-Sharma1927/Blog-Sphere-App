@@ -57,7 +57,7 @@ function AddBlog() {
     try {
       startLoading();
       const res = await axios.post(
-        `/api/blogs`,
+        `/api/v1/blogs`,
         formData,
         {
           headers: {
@@ -113,7 +113,7 @@ function AddBlog() {
     try {
       startLoading();
       const res = await axios.patch(
-        `/api/blogs/${id}`,
+        `/api/v1/blogs/${id}`,
         formData,
         {
           headers: {

@@ -8,13 +8,12 @@ dotenv.config()
 export default defineConfig({
   plugins: [react()],
   server: {
-    port: 5173,
     proxy: {
       '/api': {
-        target: process.env.VITE_BACKEND_URL || 'http://localhost:5000',
+        target: process.env.VITE_BACKEND_URL || 'http://localhost:3000',
         changeOrigin: true,
         secure: false,
-        // Don't rewrite the path - we want to keep the /api prefix
+        // Don't rewrite the path, as the backend is already expecting /api/v1
         // rewrite: (path) => path.replace(/^\/api/, '')
       }
     }

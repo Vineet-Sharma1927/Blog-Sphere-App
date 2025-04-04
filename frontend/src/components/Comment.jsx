@@ -34,7 +34,7 @@ function Comment() {
       }
       
       let res = await axios.post(
-        `/api/blogs/comment/${blogId}`,
+        `/api/v1/blogs/comment/${blogId}`,
         {
           comment,
         },
@@ -120,7 +120,7 @@ function DisplayComments({
       }
       
       let res = await axios.post(
-        `/api/comment/${parentCommentId}/${blogId}`,
+        `/api/v1/blogs/comment/${parentCommentId}/${blogId}`,
         {
           reply,
         },
@@ -147,7 +147,7 @@ function DisplayComments({
       }
       
       const res = await axios.patch(
-        `/api/blogs/like-comment/${commentId}`,
+        `/api/v1/blogs/like-comment/${commentId}`,
         {},
         {
           headers: {
@@ -179,7 +179,7 @@ function DisplayComments({
       }
       
       let res = await axios.patch(
-        `/api/blogs/edit-comment/${id}`,
+        `/api/v1/blogs/edit-comment/${id}`,
         {
           updatedCommentContent,
         },
@@ -208,7 +208,7 @@ function DisplayComments({
       }
       
       let res = await axios.delete(
-        `/api/blogs/comment/${id}`,
+        `/api/v1/blogs/comment/${id}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

@@ -110,23 +110,10 @@ async function createBlog(req, res) {
 
 async function getBlogs(req, res) {
   try {
-    console.log("GET /blogs endpoint hit", req.query);
-    // Use default values if the parameters are not provided or invalid
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
-    console.log(`Page: ${page}, Limit: ${limit}`);
-    
-    if (page < 1 || limit < 1) {
-      return res.status(400).json({
-        message: "Invalid page or limit parameters",
-        blogs: [],
-        hasMore: false
-      });
-    }
-    
+    const page = parseInt(req.query.page);
+    const limit = parseInt(req.query.limit);
     const skip = (page - 1) * limit;
 
-    console.log("Executing MongoDB query for blogs");
     const blogs = await Blog.find({ draft: false })
       .populate({
         path: "creator",
@@ -140,19 +127,7 @@ async function getBlogs(req, res) {
       .skip(skip)
       .limit(limit);
 
-    console.log(`Found ${blogs.length} blogs`);
     const totalBlogs = await Blog.countDocuments({ draft: false });
-    console.log(`Total blogs: ${totalBlogs}`);
-
-    // Check if blogs is a valid array
-    if (!Array.isArray(blogs)) {
-      console.error("Blogs is not an array:", blogs);
-      return res.status(500).json({
-        message: "Internal server error: Invalid data format",
-        blogs: [],
-        hasMore: false
-      });
-    }
 
     return res.status(200).json({
       message: "Blogs fetched Successfully",
@@ -160,11 +135,8 @@ async function getBlogs(req, res) {
       hasMore: skip + limit < totalBlogs,
     });
   } catch (error) {
-    console.error("Error fetching blogs:", error);
     return res.status(500).json({
       message: error.message,
-      blogs: [],
-      hasMore: false
     });
   }
 }
@@ -300,4 +272,211 @@ async function updateBlog(req, res) {
     if (req?.files?.image) {
       await deleteImagefromCloudinary(blog.imageId);
       const { secure_url, public_id } = await uploadImage(
-        `
+        `data:image/jpeg;base64,${req?.files?.image[0]?.buffer?.toString(
+          "base64"
+        )}`
+      );
+      blog.image = secure_url;
+      blog.imageId = public_id;
+    }
+
+    blog.title = title || blog.title;
+    blog.description = description || blog.description;
+    blog.draft = draft;
+    blog.content = content || blog.content;
+    blog.tags = tags || blog.tags;
+
+    await blog.save();
+
+    if (draft) {
+      return res.status(200).json({
+        message:
+          "Blog Saved as Draft. You can again public it from your profile page",
+        blog,
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Blog updated successfully",
+      blog,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      message: error.message,
+    });
+  }
+}
+
+async function deleteBlog(req, res) {
+  try {
+    const creator = req.user;
+    const { id } = req.params;
+
+    const blog = await Blog.findById(id);
+
+    if (!blog) {
+      return res.status(500).json({
+        message: "Blog is not found",
+      });
+    }
+
+    if (creator != blog.creator) {
+      return res.status(500).json({
+        message: "You are not authorized for this action",
+      });
+    }
+
+    await deleteImagefromCloudinary(blog.imageId);
+
+    await Blog.findByIdAndDelete(id);
+    await User.findByIdAndUpdate(creator, { $pull: { blogs: id } });
+
+    return res.status(200).json({
+      success: true,
+      message: "Blog deleted successfully",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message,
+    });
+  }
+}
+
+async function likeBlog(req, res) {
+  try {
+    const user = req.user;
+    const { id } = req.params;
+
+    const blog = await Blog.findById(id);
+
+    if (!blog) {
+      return res.status(500).json({
+        message: "Blog is not found",
+      });
+    }
+
+    if (!blog.likes.includes(user)) {
+      await Blog.findByIdAndUpdate(id, { $push: { likes: user } });
+      await User.findByIdAndUpdate(user, { $push: { likeBlogs: id } });
+      return res.status(200).json({
+        success: true,
+        message: "Blog Liked successfully",
+        isLiked: true,
+      });
+    } else {
+      await Blog.findByIdAndUpdate(id, { $pull: { likes: user } });
+      await User.findByIdAndUpdate(user, { $pull: { likeBlogs: id } });
+      return res.status(200).json({
+        success: true,
+        message: "Blog DisLiked successfully",
+        isLiked: false,
+      });
+    }
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message,
+    });
+  }
+}
+
+async function saveBlog(req, res) {
+  try {
+    const user = req.user;
+    const { id } = req.params;
+
+    const blog = await Blog.findById(id);
+
+    if (!blog) {
+      return res.status(500).json({
+        message: "Blog is not found",
+      });
+    }
+
+    if (!blog.totalSaves.includes(user)) {
+      await Blog.findByIdAndUpdate(id, { $set: { totalSaves: user } });
+      await User.findByIdAndUpdate(user, { $set: { saveBlogs: id } });
+      return res.status(200).json({
+        success: true,
+        message: "Blog has been saved",
+        isLiked: true,
+      });
+    } else {
+      await Blog.findByIdAndUpdate(id, { $unset: { totalSaves: user } });
+      await User.findByIdAndUpdate(user, { $unset: { saveBlogs: id } });
+      return res.status(200).json({
+        success: true,
+        message: "Blog Unsaved",
+        isLiked: false,
+      });
+    }
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message,
+    });
+  }
+}
+
+async function searchBlogs(req, res) {
+  try {
+    const { search, tag } = req.query;
+
+    const page = parseInt(req.query.page);
+    const limit = parseInt(req.query.limit);
+    const skip = (page - 1) * limit;
+
+    let query;
+
+    if (tag) {
+      query = { tags: tag };
+    } else {
+      query = {
+        $or: [
+          { title: { $regex: search, $options: "i" } },
+          { description: { $regex: search, $options: "i" } },
+        ],
+      };
+    }
+
+    const blogs = await Blog.find(query, { draft: false })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .populate({
+        path: "creator",
+        select: "name email followers username profilePic",
+      });
+    if (blogs.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Make sure all words are spelled correctly.Try different keywords . Try more general keywords",
+        hasMore: false,
+      });
+    }
+
+    const totalBlogs = await Blog.countDocuments(query, { draft: false });
+
+    return res.status(200).json({
+      success: true,
+      blogs,
+      hasMore: skip + limit < totalBlogs,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message,
+    });
+  }
+}
+
+module.exports = {
+  createBlog,
+  deleteBlog,
+  getBlog,
+  getBlogs,
+  updateBlog,
+  likeBlog,
+  saveBlog,
+  searchBlogs,
+};

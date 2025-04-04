@@ -5,10 +5,8 @@ import { useSelector } from "react-redux";
 import axios from "axios";
 import toast from "react-hot-toast";
 
-function DisplayBlogs({ blogs = [] }) {
+function DisplayBlogs({ blogs }) {
   const { token, id: userId } = useSelector((state) => state.user);
-  
-  const blogsArray = Array.isArray(blogs) ? blogs : [];
   
   const handleSaveBlogs = async (blogId, token) => {
     try {
@@ -17,7 +15,7 @@ function DisplayBlogs({ blogs = [] }) {
       }
       
       const res = await axios.patch(
-        `/api/blogs/save/${blogId}`,
+        `/api/v1/blogs/save/${blogId}`,
         {},
         {
           headers: {
@@ -37,8 +35,8 @@ function DisplayBlogs({ blogs = [] }) {
 
   return (
     <div>
-      {blogsArray.length > 0 ? (
-        blogsArray.map((blog) => (
+      {blogs.length > 0 ? (
+        blogs.map((blog) => (
           <Link key={blog._id} to={"/blog/" + blog.blogId}>
             <div key={blog._id} className="w-full my-10 flex justify-between max-xsm:flex-col ">
               <div className="w-[60%] flex flex-col gap-2 max-xsm:w-full">
