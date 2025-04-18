@@ -90,7 +90,7 @@ async function createUser(req, res) {
 
         //email logic
 
-        const sendingEmail = transporter.sendMail({
+        await transporter.sendMail({
           from: EMAIL_USER,
           to: checkForexistingUser.email,
           subject: "Email Verification",
@@ -123,7 +123,7 @@ async function createUser(req, res) {
 
     //email logic
 
-    const sendingEmail = transporter.sendMail({
+    await transporter.sendMail({
       from: EMAIL_USER,
       to: email,
       subject: "Email Verification",
@@ -326,7 +326,7 @@ async function login(req, res) {
 
       //email logic
 
-      const sendingEmail = transporter.sendMail({
+      await transporter.sendMail({
         from: EMAIL_USER,
         to: checkForexistingUser.email,
         subject: "Email Verification",
