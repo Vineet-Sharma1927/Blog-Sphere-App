@@ -21,7 +21,7 @@ export async function handleSaveBlogs(id, token) {
     }
     
     let res = await axios.patch(
-      `/api/v1/blogs/save/${id}`,
+      `${import.meta.env.VITE_BACKEND_URL}/api/v1/blogs/save/${id}`,
       {},
       {
         headers: {
@@ -45,7 +45,7 @@ export async function handleFollowCreator(id, token, dispatch) {
     }
     
     let res = await axios.patch(
-      `/api/v1/users/follow/${id}`,
+      `${import.meta.env.VITE_BACKEND_URL}/api/v1/users/follow/${id}`,
       {},
       {
         headers: {
@@ -96,13 +96,13 @@ function BlogPage() {
     try {
       let {
         data: { blog },
-      } = await axios.get(`/api/v1/blogs/${id}`);
+      } = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/v1/blogs/${id}`);
       setBlogData(blog);
       setIsBlogSaved(blog?.totalSaves?.includes(userId));
 
       dispatch(addSlectedBlog(blog));
 
-      if (blog.likes && userId && blog.likes.includes(userId)) {
+      if (blog.likes.includes(userId)) {
         setIsLike((prev) => !prev);
       }
     } catch (error) {
@@ -116,15 +116,11 @@ function BlogPage() {
       return toast.error("Please signin to like this blog");
     }
     
-    if (!blogData || !blogData._id) {
-      return toast.error("Blog data not loaded properly");
-    }
-    
     try {
       setIsLike((prev) => !prev);
 
       let res = await axios.post(
-        `/api/v1/blogs/like/${blogData._id}`,
+        `${import.meta.env.VITE_BACKEND_URL}/api/v1/blogs/like/${blogData._id}`,
         {},
         {
           headers: {
@@ -187,7 +183,7 @@ function BlogPage() {
                     {blogData.creator?.name}
                   </h2>
                 </Link>
-                {userId && blogData?.creator?._id && userId !== blogData.creator._id && (
+                {userId !== blogData.creator._id && (
                   <p
                     onClick={() =>
                       handleFollowCreator(blogData.creator?._id, token, dispatch)
@@ -210,7 +206,7 @@ function BlogPage() {
 
           <img src={blogData.image} alt="" />
 
-          {token && email && blogData?.creator?.email && email === blogData.creator?.email && (
+          {token && email === blogData.creator?.email && (
             <Link to={"/edit/" + blogData.blogId}>
               <button className="bg-green-400 mt-5 px-6 py-2 text-xl rounded ">
                 Edit
