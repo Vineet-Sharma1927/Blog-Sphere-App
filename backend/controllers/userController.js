@@ -174,28 +174,40 @@ async function verifyEmail(req, res) {
     
     console.log("User found, current isVerify status:", userExists.isVerify);
     
-    // Now update the user with isVerify set to true
+    // Try multiple update approaches to ensure the field gets updated
+    
+    // Approach 1: findByIdAndUpdate
+    console.log("Trying update approach 1: findByIdAndUpdate");
     const updatedUser = await User.findByIdAndUpdate(
       id,
       { isVerify: true },
       { new: true }
     );
+    console.log("Approach 1 result:", updatedUser ? updatedUser.isVerify : "No result");
+    
+    // Approach 2: updateOne
+    console.log("Trying update approach 2: updateOne");
+    const updateResult = await User.updateOne(
+      { _id: id },
+      { $set: { isVerify: true } }
+    );
+    console.log("Approach 2 result:", updateResult);
+    
+    // Approach 3: Direct document update
+    console.log("Trying update approach 3: Direct document update");
+    userExists.isVerify = true;
+    await userExists.save();
     
     // Double-check that the update worked
     const verifiedUser = await User.findById(id);
-    console.log("After update - isVerify status:", verifiedUser.isVerify);
+    console.log("After all updates - isVerify status:", verifiedUser.isVerify);
 
     if (!verifiedUser.isVerify) {
-      console.log("WARNING: isVerify field was not updated properly!");
-      
-      // Try a different update approach as fallback
-      await User.updateOne(
-        { _id: id },
-        { $set: { isVerify: true } }
-      );
-      
-      const recheckedUser = await User.findById(id);
-      console.log("After direct update - isVerify status:", recheckedUser.isVerify);
+      console.log("WARNING: isVerify field was not updated properly after all attempts!");
+      return res.status(500).json({
+        success: false,
+        message: "Could not update verification status. Please contact support.",
+      });
     }
 
     return res.status(200).json({
