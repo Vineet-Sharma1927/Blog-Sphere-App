@@ -148,8 +148,10 @@ async function createUser(req, res) {
 async function verifyEmail(req, res) {
   try {
     const { verificationToken } = req.params;
+    console.log("Verification request received for token:", verificationToken);
 
     const verifyToken = await verifyJWT(verificationToken);
+    console.log("Token verification result:", verifyToken);
 
     if (!verifyToken) {
       return res.status(400).json({
@@ -158,11 +160,14 @@ async function verifyEmail(req, res) {
       });
     }
     const { id } = verifyToken;
+    console.log("User ID from token:", id);
+    
     const user = await User.findByIdAndUpdate(
       id,
       { isVerify: true },
       { new: true }
     );
+    console.log("User update result:", user ? "User found and updated" : "User not found", user?.isVerify);
 
     if (!user) {
       return res.status(400).json({
@@ -176,6 +181,7 @@ async function verifyEmail(req, res) {
       message: "Email verified successfully",
     });
   } catch (error) {
+    console.error("Verification error:", error);
     return res.status(500).json({
       success: false,
       message: "Please try again",
@@ -272,6 +278,8 @@ async function login(req, res) {
   const { password, email } = req.body;
 
   try {
+    console.log("Login attempt for email:", email);
+    
     if (!password) {
       return res.status(400).json({
         success: false,
@@ -289,6 +297,11 @@ async function login(req, res) {
     const checkForexistingUser = await User.findOne({ email }).select(
       "password isVerify name email profilePic username bio showLikedBlogs showSavedBlogs followers following googleAuth"
     );
+    
+    console.log("User found:", checkForexistingUser ? "Yes" : "No");
+    if (checkForexistingUser) {
+      console.log("isVerify status:", checkForexistingUser.isVerify);
+    }
 
     if (!checkForexistingUser) {
       return res.status(400).json({
@@ -309,6 +322,8 @@ async function login(req, res) {
       password,
       checkForexistingUser.password
     );
+    
+    console.log("Password check:", checkForPass ? "Passed" : "Failed");
 
     if (!checkForPass) {
       return res.status(400).json({
@@ -318,6 +333,7 @@ async function login(req, res) {
     }
 
     if (!checkForexistingUser.isVerify) {
+      console.log("User email not verified, sending verification email");
       // send verification email
       let verificationToken = await generateJWT({
         email: checkForexistingUser.email,
@@ -340,7 +356,8 @@ async function login(req, res) {
         message: "Please verify you email",
       });
     }
-
+    
+    console.log("User verified, generating login token");
     let token = await generateJWT({
       email: checkForexistingUser.email,
       id: checkForexistingUser._id,
