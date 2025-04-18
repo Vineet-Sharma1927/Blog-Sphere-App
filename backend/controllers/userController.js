@@ -159,21 +159,43 @@ async function verifyEmail(req, res) {
         message: "Invalid Token/Email expired",
       });
     }
-    const { id } = verifyToken;
-    console.log("User ID from token:", id);
+    const { id, email } = verifyToken;
+    console.log("User info from token - ID:", id, "Email:", email);
     
-    const user = await User.findByIdAndUpdate(
+    // First, try to find the user to make sure they exist
+    const userExists = await User.findById(id);
+    if (!userExists) {
+      console.log("User not found with ID:", id);
+      return res.status(400).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+    
+    console.log("User found, current isVerify status:", userExists.isVerify);
+    
+    // Now update the user with isVerify set to true
+    const updatedUser = await User.findByIdAndUpdate(
       id,
       { isVerify: true },
       { new: true }
     );
-    console.log("User update result:", user ? "User found and updated" : "User not found", user?.isVerify);
+    
+    // Double-check that the update worked
+    const verifiedUser = await User.findById(id);
+    console.log("After update - isVerify status:", verifiedUser.isVerify);
 
-    if (!user) {
-      return res.status(400).json({
-        success: false,
-        message: "User not exist",
-      });
+    if (!verifiedUser.isVerify) {
+      console.log("WARNING: isVerify field was not updated properly!");
+      
+      // Try a different update approach as fallback
+      await User.updateOne(
+        { _id: id },
+        { $set: { isVerify: true } }
+      );
+      
+      const recheckedUser = await User.findById(id);
+      console.log("After direct update - isVerify status:", recheckedUser.isVerify);
     }
 
     return res.status(200).json({
@@ -294,6 +316,7 @@ async function login(req, res) {
       });
     }
 
+    // Find user with email - using full document
     const checkForexistingUser = await User.findOne({ email }).select(
       "password isVerify name email profilePic username bio showLikedBlogs showSavedBlogs followers following googleAuth"
     );
@@ -301,6 +324,7 @@ async function login(req, res) {
     console.log("User found:", checkForexistingUser ? "Yes" : "No");
     if (checkForexistingUser) {
       console.log("isVerify status:", checkForexistingUser.isVerify);
+      console.log("User ID:", checkForexistingUser._id);
     }
 
     if (!checkForexistingUser) {
@@ -332,6 +356,17 @@ async function login(req, res) {
       });
     }
 
+    // Double-check verification status directly from database
+    const verificationCheck = await User.findById(checkForexistingUser._id);
+    console.log("Double-checking isVerify:", verificationCheck.isVerify);
+    
+    // If the verification check shows the user is verified but our original check didn't,
+    // update the checkForexistingUser object
+    if (verificationCheck.isVerify && !checkForexistingUser.isVerify) {
+      console.log("Verification status mismatch - updating our reference");
+      checkForexistingUser.isVerify = true;
+    }
+
     if (!checkForexistingUser.isVerify) {
       console.log("User email not verified, sending verification email");
       // send verification email
@@ -341,7 +376,6 @@ async function login(req, res) {
       });
 
       //email logic
-
       await transporter.sendMail({
         from: EMAIL_USER,
         to: checkForexistingUser.email,
