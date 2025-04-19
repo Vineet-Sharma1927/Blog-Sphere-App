@@ -9,10 +9,27 @@ const initialBlogState = {
 // Safely parse localStorage data
 const getSelectedBlogFromStorage = () => {
   try {
+    // First clear any malformed data
     const storedBlog = localStorage.getItem("selectedBlog");
-    return storedBlog ? JSON.parse(storedBlog) : initialBlogState;
+    if (storedBlog === "undefined" || storedBlog === null) {
+      localStorage.removeItem("selectedBlog");
+      return initialBlogState;
+    }
+    
+    const parsedBlog = JSON.parse(storedBlog);
+    
+    // Ensure all required properties exist
+    return {
+      ...initialBlogState,
+      ...parsedBlog,
+      creator: parsedBlog.creator || { _id: "" },
+      likes: Array.isArray(parsedBlog.likes) ? parsedBlog.likes : [],
+      comments: Array.isArray(parsedBlog.comments) ? parsedBlog.comments : []
+    };
   } catch (error) {
     console.error("Error parsing blog data from localStorage:", error);
+    // Clear corrupted data
+    localStorage.removeItem("selectedBlog");
     return initialBlogState;
   }
 };
@@ -22,12 +39,24 @@ const selectedBlogSlice = createSlice({
   initialState: getSelectedBlogFromStorage(),
   reducers: {
     addSlectedBlog(state, action) {
+      if (!action.payload) {
+        return state;
+      }
+      
+      // Ensure the payload has all required properties
+      const safePayload = {
+        ...action.payload,
+        creator: action.payload.creator || { _id: "" },
+        likes: Array.isArray(action.payload.likes) ? action.payload.likes : [],
+        comments: Array.isArray(action.payload.comments) ? action.payload.comments : []
+      };
+      
       try {
-        localStorage.setItem("selectedBlog", JSON.stringify(action.payload));
+        localStorage.setItem("selectedBlog", JSON.stringify(safePayload));
       } catch (error) {
         console.error("Error saving blog data to localStorage:", error);
       }
-      return action.payload;
+      return safePayload;
     },
     removeSelectedBlog(state, action) {
       try {
@@ -35,10 +64,14 @@ const selectedBlogSlice = createSlice({
       } catch (error) {
         console.error("Error removing blog data from localStorage:", error);
       }
-      return {};
+      return initialBlogState;
     },
 
     changeLikes(state, action) {
+      if (!Array.isArray(state.likes)) {
+        state.likes = [];
+      }
+      
       if (state.likes.includes(action.payload)) {
         state.likes = state.likes.filter((like) => like !== action.payload);
       } else {
