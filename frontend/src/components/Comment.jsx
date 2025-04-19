@@ -20,11 +20,12 @@ function Comment() {
   const [activeReply, setActiveReply] = useState(null);
   const [currentPopup, setCurrentPopup] = useState(null);
   const [currentEditComment, setCurrentEditComment] = useState(null);
+  const selectedBlog = useSelector((state) => state.selectedBlog);
   const {
     _id: blogId,
     comments,
-    creator: { _id: creatorId },
-  } = useSelector((state) => state.selectedBlog);
+  } = selectedBlog;
+  const creatorId = selectedBlog.creator?._id;
   const { token, id: userId } = useSelector((state) => state.user);
 
   async function handleComment() {
