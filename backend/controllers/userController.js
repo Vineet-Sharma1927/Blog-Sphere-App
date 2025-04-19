@@ -148,10 +148,8 @@ async function createUser(req, res) {
 async function verifyEmail(req, res) {
   try {
     const { verificationToken } = req.params;
-    console.log("Verification request received for token:", verificationToken);
 
     const verifyToken = await verifyJWT(verificationToken);
-    console.log("Token verification result:", verifyToken);
 
     if (!verifyToken) {
       return res.status(400).json({
@@ -159,43 +157,18 @@ async function verifyEmail(req, res) {
         message: "Invalid Token/Email expired",
       });
     }
-    const { id, email } = verifyToken;
-    console.log("User info from token - ID:", id, "Email:", email);
-    
-    // First, try to find the user to make sure they exist
-    const userExists = await User.findById(id);
-    if (!userExists) {
-      console.log("User not found with ID:", id);
-      return res.status(400).json({
-        success: false,
-        message: "User not found",
-      });
-    }
-    
-    console.log("User found, current isVerify status:", userExists.isVerify);
-    
-    // Now update the user with isVerify set to true
-    await User.findByIdAndUpdate(
+    const { id } = verifyToken;
+    const user = await User.findByIdAndUpdate(
       id,
       { isVerify: true },
       { new: true }
     );
-    
-    // Double-check that the update worked
-    const verifiedUser = await User.findById(id);
-    console.log("After update - isVerify status:", verifiedUser.isVerify);
 
-    if (!verifiedUser.isVerify) {
-      console.log("WARNING: isVerify field was not updated properly!");
-      
-      // Try a different update approach as fallback
-      await User.updateOne(
-        { _id: id },
-        { $set: { isVerify: true } }
-      );
-      
-      const recheckedUser = await User.findById(id);
-      console.log("After direct update - isVerify status:", recheckedUser.isVerify);
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: "User not exist",
+      });
     }
 
     return res.status(200).json({
@@ -203,7 +176,6 @@ async function verifyEmail(req, res) {
       message: "Email verified successfully",
     });
   } catch (error) {
-    console.error("Verification error:", error);
     return res.status(500).json({
       success: false,
       message: "Please try again",
@@ -300,8 +272,6 @@ async function login(req, res) {
   const { password, email } = req.body;
 
   try {
-    console.log("Login attempt for email:", email);
-    
     if (!password) {
       return res.status(400).json({
         success: false,
@@ -316,16 +286,9 @@ async function login(req, res) {
       });
     }
 
-    // Find user with email - using full document
     const checkForexistingUser = await User.findOne({ email }).select(
       "password isVerify name email profilePic username bio showLikedBlogs showSavedBlogs followers following googleAuth"
     );
-    
-    console.log("User found:", checkForexistingUser ? "Yes" : "No");
-    if (checkForexistingUser) {
-      console.log("isVerify status:", checkForexistingUser.isVerify);
-      console.log("User ID:", checkForexistingUser._id);
-    }
 
     if (!checkForexistingUser) {
       return res.status(400).json({
@@ -346,8 +309,6 @@ async function login(req, res) {
       password,
       checkForexistingUser.password
     );
-    
-    console.log("Password check:", checkForPass ? "Passed" : "Failed");
 
     if (!checkForPass) {
       return res.status(400).json({
@@ -356,19 +317,7 @@ async function login(req, res) {
       });
     }
 
-    // Double-check verification status directly from database
-    const verificationCheck = await User.findById(checkForexistingUser._id);
-    console.log("Double-checking isVerify:", verificationCheck.isVerify);
-    
-    // If the verification check shows the user is verified but our original check didn't,
-    // update the checkForexistingUser object
-    if (verificationCheck.isVerify && !checkForexistingUser.isVerify) {
-      console.log("Verification status mismatch - updating our reference");
-      checkForexistingUser.isVerify = true;
-    }
-
     if (!checkForexistingUser.isVerify) {
-      console.log("User email not verified, sending verification email");
       // send verification email
       let verificationToken = await generateJWT({
         email: checkForexistingUser.email,
@@ -376,6 +325,7 @@ async function login(req, res) {
       });
 
       //email logic
+
       await transporter.sendMail({
         from: EMAIL_USER,
         to: checkForexistingUser.email,
@@ -390,8 +340,7 @@ async function login(req, res) {
         message: "Please verify you email",
       });
     }
-    
-    console.log("User verified, generating login token");
+
     let token = await generateJWT({
       email: checkForexistingUser.email,
       id: checkForexistingUser._id,
