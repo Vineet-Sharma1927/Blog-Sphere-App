@@ -1,27 +1,46 @@
 import { createSlice } from "@reduxjs/toolkit";
 
+const initialUserState = {
+  token: null,
+  name: null,
+  username: null,
+  email: null,
+  id: null,
+  profilePic: null,
+  followers: [],
+  following: [],
+};
+
+// Safely parse localStorage data
+const getUserFromStorage = () => {
+  try {
+    const storedUser = localStorage.getItem("user");
+    return storedUser ? JSON.parse(storedUser) : initialUserState;
+  } catch (error) {
+    console.error("Error parsing user data from localStorage:", error);
+    return initialUserState;
+  }
+};
+
 const userSlice = createSlice({
   name: "userSlice",
-  initialState: JSON.parse(localStorage.getItem("user")) || {
-    token: null,
-    name: null,
-    username: null,
-    email: null,
-    id: null,
-    profilePic: null,
-    followers: [],
-    following: [],
-  },
+  initialState: getUserFromStorage(),
   reducers: {
     login(state, action) {
-      localStorage.setItem(
-        "user",
-        JSON.stringify({ followers: [], following: [], ...action.payload })
-      );
-      return { followers: [], following: [], ...action.payload };
+      const userData = { followers: [], following: [], ...action.payload };
+      try {
+        localStorage.setItem("user", JSON.stringify(userData));
+      } catch (error) {
+        console.error("Error saving user data to localStorage:", error);
+      }
+      return userData;
     },
     logout(state, action) {
-      localStorage.removeItem("user");
+      try {
+        localStorage.removeItem("user");
+      } catch (error) {
+        console.error("Error removing user data from localStorage:", error);
+      }
       return {
         token: null,
       };
@@ -30,8 +49,13 @@ const userSlice = createSlice({
     updateData(state, action) {
       const data = action.payload;
       if (data[0] === "visibility") {
-        localStorage.setItem("user", JSON.stringify({ ...state, ...data[1] }));
-        return { ...state, ...data };
+        const updatedState = { ...state, ...data[1] };
+        try {
+          localStorage.setItem("user", JSON.stringify(updatedState));
+        } catch (error) {
+          console.error("Error updating user data in localStorage:", error);
+        }
+        return updatedState;
       } else if (data[0] === "followers") {
         const finalData = {
           ...state,
@@ -40,7 +64,11 @@ const userSlice = createSlice({
             : [...state.following, data[1]],
         };
 
-        localStorage.setItem("user", JSON.stringify(finalData));
+        try {
+          localStorage.setItem("user", JSON.stringify(finalData));
+        } catch (error) {
+          console.error("Error updating following data in localStorage:", error);
+        }
         return finalData;
       }
     },

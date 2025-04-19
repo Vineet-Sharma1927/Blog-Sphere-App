@@ -12,6 +12,7 @@ import Comment from "../components/Comment";
 import { setIsOpen } from "../utils/commentSlice";
 import { formatDate } from "../utils/formatDate";
 import { updateData } from "../utils/userSilce";
+import api from "../utils/api";
 // import jwt from "jsonwebtoken"
 
 export async function handleSaveBlogs(id, token) {
@@ -20,14 +21,9 @@ export async function handleSaveBlogs(id, token) {
       return toast.error("Please signin to save this blog");
     }
     
-    let res = await axios.patch(
-      `${import.meta.env.VITE_BACKEND_URL}/api/v1/blogs/save/${id}`,
-      {},
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        }
-      }
+    let res = await api.patch(
+      `/api/v1/blogs/save/${id}`,
+      {}
     );
     toast.success(res.data.message);
     return true;
@@ -44,14 +40,9 @@ export async function handleFollowCreator(id, token, dispatch) {
       return toast.error("Please signin to follow this creator");
     }
     
-    let res = await axios.patch(
-      `${import.meta.env.VITE_BACKEND_URL}/api/v1/users/follow/${id}`,
-      {},
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        }
-      }
+    let res = await api.patch(
+      `/api/v1/users/follow/${id}`,
+      {}
     );
     toast.success(res.data.message);
 
@@ -96,13 +87,13 @@ function BlogPage() {
     try {
       let {
         data: { blog },
-      } = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/v1/blogs/${id}`);
+      } = await api.get(`/api/v1/blogs/${id}`);
       setBlogData(blog);
       setIsBlogSaved(blog?.totalSaves?.includes(userId));
 
       dispatch(addSlectedBlog(blog));
 
-      if (blog.likes.includes(userId)) {
+      if (blog.likes && blog.likes.includes(userId)) {
         setIsLike((prev) => !prev);
       }
     } catch (error) {
@@ -119,14 +110,9 @@ function BlogPage() {
     try {
       setIsLike((prev) => !prev);
 
-      let res = await axios.post(
-        `${import.meta.env.VITE_BACKEND_URL}/api/v1/blogs/like/${blogData._id}`,
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          }
-        }
+      let res = await api.post(
+        `/api/v1/blogs/like/${blogData._id}`,
+        {}
       );
       dispatch(changeLikes(userId));
       toast.success(res.data.message);

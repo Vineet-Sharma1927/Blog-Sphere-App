@@ -1,19 +1,40 @@
 import { createSlice } from "@reduxjs/toolkit";
 
+const initialBlogState = {
+  creator: { _id: "" },
+  likes: [],
+  comments: [],
+};
+
+// Safely parse localStorage data
+const getSelectedBlogFromStorage = () => {
+  try {
+    const storedBlog = localStorage.getItem("selectedBlog");
+    return storedBlog ? JSON.parse(storedBlog) : initialBlogState;
+  } catch (error) {
+    console.error("Error parsing blog data from localStorage:", error);
+    return initialBlogState;
+  }
+};
+
 const selectedBlogSlice = createSlice({
   name: "selectedBlogSlice",
-  initialState: JSON.parse(localStorage.getItem("selectedBlog")) || {
-    creator: { _id: "" },
-    likes: [],
-    comments: [],
-  },
+  initialState: getSelectedBlogFromStorage(),
   reducers: {
     addSlectedBlog(state, action) {
-      localStorage.setItem("selectedBlog", JSON.stringify(action.payload));
+      try {
+        localStorage.setItem("selectedBlog", JSON.stringify(action.payload));
+      } catch (error) {
+        console.error("Error saving blog data to localStorage:", error);
+      }
       return action.payload;
     },
     removeSelectedBlog(state, action) {
-      localStorage.removeItem("selectedBlog");
+      try {
+        localStorage.removeItem("selectedBlog");
+      } catch (error) {
+        console.error("Error removing blog data from localStorage:", error);
+      }
       return {};
     },
 
