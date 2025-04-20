@@ -2,7 +2,7 @@ import axios from "axios";
 import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { useDispatch, useSelector } from "react-redux";
-import { Link, useLocation, useParams } from "react-router-dom";
+import { Link, useLocation, useParams, useNavigate } from "react-router-dom";
 import {
   addSlectedBlog,
   changeLikes,
@@ -61,6 +61,9 @@ function BlogPage() {
   const { id } = useParams();
   const dispatch = useDispatch();
   const location = useLocation();
+  const navigate = useNavigate();
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   //   const user = JSON.parse(localStorage.getItem("user"));
   //   const token = JSON.parse(localStorage.getItem("token"));
@@ -124,6 +127,34 @@ function BlogPage() {
     }
   }
 
+  async function handleDeleteBlog() {
+    if (!token) {
+      return toast.error("Please signin to delete this blog");
+    }
+
+    if (!blogData || !blogData._id) {
+      return toast.error("Blog not found");
+    }
+
+    try {
+      setIsDeleting(true);
+      let res = await api.delete(
+        `/api/v1/blogs/${blogData._id}`
+      );
+      
+      toast.success(res.data.message || "Blog deleted successfully");
+      
+      // Navigate to the home page after deletion
+      navigate('/');
+    } catch (error) {
+      console.error("Delete blog error:", error);
+      toast.error(error.response?.data?.message || "Failed to delete blog");
+    } finally {
+      setIsDeleting(false);
+      setShowDeleteConfirm(false);
+    }
+  }
+
   useEffect(() => {
     fetchBlogById();
 
@@ -137,6 +168,32 @@ function BlogPage() {
       }
     };
   }, [id]);
+
+  // Delete confirmation modal
+  const DeleteConfirmationModal = () => (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg p-6 w-full max-w-md">
+        <h2 className="text-xl font-bold mb-4">Delete Blog</h2>
+        <p className="mb-6">Are you sure you want to delete this blog? This action cannot be undone.</p>
+        <div className="flex justify-end gap-4">
+          <button 
+            className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300"
+            onClick={() => setShowDeleteConfirm(false)}
+            disabled={isDeleting}
+          >
+            Cancel
+          </button>
+          <button 
+            className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+            onClick={handleDeleteBlog}
+            disabled={isDeleting}
+          >
+            {isDeleting ? 'Deleting...' : 'Delete'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <div className="max-w-[700px] mx-auto p-5 ">
@@ -193,11 +250,19 @@ function BlogPage() {
           <img src={blogData.image} alt="" />
 
           {token && email === blogData.creator?.email && (
-            <Link to={"/edit/" + blogData.blogId}>
-              <button className="bg-green-400 mt-5 px-6 py-2 text-xl rounded ">
-                Edit
+            <div className="flex gap-3 mt-5">
+              <Link to={"/edit/" + blogData.blogId}>
+                <button className="bg-green-400 px-6 py-2 text-xl rounded hover:bg-green-500">
+                  Edit
+                </button>
+              </Link>
+              <button 
+                className="bg-red-500 px-6 py-2 text-xl rounded text-white hover:bg-red-600"
+                onClick={() => setShowDeleteConfirm(true)}
+              >
+                Delete
               </button>
-            </Link>
+            </div>
           )}
           <div className="flex gap-7 mt-4">
             <div className="cursor-pointer flex gap-2 ">
@@ -310,6 +375,7 @@ function BlogPage() {
       )}
 
       {isOpen && <Comment />}
+      {showDeleteConfirm && <DeleteConfirmationModal />}
     </div>
   );
 }
