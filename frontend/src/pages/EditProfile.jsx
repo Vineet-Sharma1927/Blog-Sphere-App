@@ -1,10 +1,10 @@
-import axios from "axios";
 import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { useDispatch, useSelector } from "react-redux";
 import { login } from "../utils/userSilce";
 import { Navigate, useNavigate } from "react-router-dom";
 import useLoader from "../hooks/useLoader";
+import api from "../utils/api";
 
 function EditProfile() {
   const {
@@ -54,20 +54,26 @@ function EditProfile() {
     formData.append("username", userData.username);
     if (userData.profilePic && typeof userData.profilePic !== "string") {
       formData.append("profilePic", userData.profilePic);
+    } else if (userData.profilePic === null) {
+      // Tell the server to remove the profile pic
+      formData.append("profilePic", "");
     }
     formData.append("bio", userData.bio || "");
 
     try {
-      const res = await axios.patch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/v1/users/${userId}`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${token}`
-          }
+      // Create a custom instance for form data specifically
+      const formConfig = {
+        headers: {
+          "Content-Type": "multipart/form-data"
         }
+      };
+      
+      const res = await api.patch(
+        `/api/v1/users/${userId}`,
+        formData,
+        formConfig
       );
+      
       toast.success(res.data.message);
       dispatch(login({ ...res.data.user, token, email, id: userId }));
       navigate(`/@${res.data.user.username}`);
@@ -86,6 +92,7 @@ function EditProfile() {
       setIsButtonDisabled(isEqual);
     }
   }, [userData, initialData]);
+  
   return token == null ? (
     <Navigate to={"/signin"} />
   ) : (

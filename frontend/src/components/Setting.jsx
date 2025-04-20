@@ -1,9 +1,9 @@
-import axios from "axios";
 import React, { useState } from "react";
 import toast from "react-hot-toast";
 import { useDispatch, useSelector } from "react-redux";
 import { Navigate, useNavigate } from "react-router-dom";
 import { updateData } from "../utils/userSilce";
+import api from "../utils/api";
 
 function Setting() {
   const {
@@ -21,20 +21,15 @@ function Setting() {
 
   async function handleVisibility() {
     try {
-      const res = await axios.patch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/v1/change-saved-liked-blog-visibility`,
-        data,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+      const res = await api.patch(
+        `/api/v1/change-saved-liked-blog-visibility`,
+        data
       );
       dispatch(updateData(["visibility", data]));
       toast.success(res.data.message);
       navigate(-1);
     } catch (error) {
-      toast.error(error.response.data.message);
+      toast.error(error.response?.data?.message || "Failed to update visibility settings");
     }
   }
 

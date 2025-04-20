@@ -1,7 +1,7 @@
 import { useDispatch, useSelector } from "react-redux";
 import { setIsOpen } from "../utils/commentSlice";
 import { useState } from "react";
-import axios from "axios";
+import api from "../utils/api";
 import {
   deleteCommentAndReply,
   setCommentLikes,
@@ -34,15 +34,10 @@ function Comment() {
         return toast.error("Please login to add a comment");
       }
       
-      let res = await axios.post(
-        `${import.meta.env.VITE_BACKEND_URL}/api/v1/blogs/comment/${blogId}`,
+      let res = await api.post(
+        `/api/v1/blogs/comment/${blogId}`,
         {
           comment,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          }
         }
       );
 
@@ -57,7 +52,7 @@ function Comment() {
   return (
     <div className="bg-white h-screen p-5 fixed top-0 right-0 w-[400px] border-l drop-shadow-xl overflow-y-scroll">
       <div className="flex  justify-between">
-        <h1 className="text-xl font-medium">Comment ({comments.length})</h1>
+        <h1 className="text-xl font-medium">Comment ({comments?.length || 0})</h1>
         <i
           onClick={() => dispatch(setIsOpen(false))}
           className="fi fi-br-cross text-lg mt-1 cursor-pointer"
@@ -78,19 +73,23 @@ function Comment() {
       </div>
 
       <div className="mt-4">
-        <DisplayComments
-          comments={comments}
-          userId={userId}
-          blogId={blogId}
-          token={token}
-          activeReply={activeReply}
-          setActiveReply={setActiveReply}
-          currentPopup={currentPopup}
-          setCurrentPopup={setCurrentPopup}
-          currentEditComment={currentEditComment}
-          setCurrentEditComment={setCurrentEditComment}
-          creatorId={creatorId}
-        />
+        {Array.isArray(comments) && comments.length > 0 ? (
+          <DisplayComments
+            comments={comments}
+            userId={userId}
+            blogId={blogId}
+            token={token}
+            activeReply={activeReply}
+            setActiveReply={setActiveReply}
+            currentPopup={currentPopup}
+            setCurrentPopup={setCurrentPopup}
+            currentEditComment={currentEditComment}
+            setCurrentEditComment={setCurrentEditComment}
+            creatorId={creatorId}
+          />
+        ) : (
+          <p className="text-center text-gray-500 my-4">No comments yet</p>
+        )}
       </div>
     </div>
   );
@@ -120,15 +119,10 @@ function DisplayComments({
         return toast.error("Please login to reply to this comment");
       }
       
-      let res = await axios.post(
-        `${import.meta.env.VITE_BACKEND_URL}/api/v1/blogs/comment/${parentCommentId}/${blogId}`,
+      let res = await api.post(
+        `/api/v1/blogs/comment/${parentCommentId}/${blogId}`,
         {
           reply,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          }
         }
       );
 
@@ -147,14 +141,9 @@ function DisplayComments({
         return toast.error("Please login to like this comment");
       }
       
-      const res = await axios.patch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/v1/blogs/like-comment/${commentId}`,
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          }
-        }
+      const res = await api.patch(
+        `/api/v1/blogs/like-comment/${commentId}`,
+        {}
       );
 
       toast.success(res.data.message);
@@ -179,15 +168,10 @@ function DisplayComments({
         return toast.error("Comment cannot be empty");
       }
       
-      let res = await axios.patch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/v1/blogs/edit-comment/${id}`,
+      let res = await api.patch(
+        `/api/v1/blogs/edit-comment/${id}`,
         {
           updatedCommentContent,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          }
         }
       );
 
@@ -208,13 +192,8 @@ function DisplayComments({
         return toast.error("Please login to delete this comment");
       }
       
-      let res = await axios.delete(
-        `${import.meta.env.VITE_BACKEND_URL}/api/v1/blogs/comment/${id}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          } 
-        }
+      let res = await api.delete(
+        `/api/v1/blogs/comment/${id}`
       );
 
       toast.success(res.data.message);
@@ -264,17 +243,16 @@ function DisplayComments({
               <>
                 <div className="flex w-full justify-between">
                   <Link
-                    to={`/@${comment.user.username}`}
+                    to={`/@${comment?.user?.username}`}
                     className="flex gap-2"
                   >
                     <div className="flex gap-2">
                       <div className="w-10 h-10 aspect-square rounded-full overflow-hidden">
                         <img
-                          //   src={`https://api.dicebear.com/9.x/initials/svg?seed=${comment.user.name}`}
                           src={
                             comment?.user?.profilePic
                               ? comment?.user?.profilePic
-                              : `https://api.dicebear.com/9.x/initials/svg?seed=${comment?.user?.name}`
+                              : `https://api.dicebear.com/9.x/initials/svg?seed=${comment?.user?.name || 'User'}`
                           }
                           alt=""
                           className="rounded-full w-full h-full object-cover"
@@ -282,14 +260,14 @@ function DisplayComments({
                       </div>
                       <div>
                         <p className="capitalize font-medium">
-                          {comment?.user?.name}
+                          {comment?.user?.name || 'Anonymous'}
                         </p>
                         <p>{formatDate(comment?.createdAt)}</p>
                       </div>
                     </div>
                   </Link>
 
-                  {comment?.user?._id === userId || userId === creatorId ? (
+                  {(comment?.user?._id === userId || userId === creatorId) ? (
                     currentPopup == comment?._id ? (
                       <div className="bg-gray-200 w-[70px] rounded-lg">
                         <i
@@ -300,7 +278,7 @@ function DisplayComments({
                           }
                           className="fi fi-br-cross relative left-12 text-sm mt-1 cursor-pointer"
                         ></i>
-                        {comment.user._id === userId ? (
+                        {comment?.user?._id === userId ? (
                           <p
                             className="p-2 py-1 hover:bg-blue-300"
                             onClick={() => {
@@ -340,7 +318,7 @@ function DisplayComments({
                 <div className="flex justify-between">
                   <div className="flex gap-4">
                     <div className="cursor-pointer flex gap-2 ">
-                      {comment.likes.includes(userId) ? (
+                      {comment.likes && Array.isArray(comment.likes) && comment.likes.includes(userId) ? (
                         <i
                           onClick={() => handleCommentLike(comment._id)}
                           className="fi fi-sr-thumbs-up text-blue-600 text-xl mt-1"
@@ -351,11 +329,11 @@ function DisplayComments({
                           className="fi fi-rr-social-network text-lg mt-1"
                         ></i>
                       )}
-                      <p className="text-lg">{comment.likes.length}</p>
+                      <p className="text-lg">{comment.likes ? comment.likes.length : 0}</p>
                     </div>
                     <div className="flex gap-2 cursor-pointer">
                       <i className="fi fi-sr-comment-alt text-lg mt-1"></i>
-                      <p className="text-lg">{comment.replies.length}</p>
+                      <p className="text-lg">{comment.replies ? comment.replies.length : 0}</p>
                     </div>
                   </div>
                   <p
@@ -385,7 +363,7 @@ function DisplayComments({
               </div>
             )}
 
-            {comment.replies.length > 0 && (
+            {comment.replies && comment.replies.length > 0 && (
               <div className="pl-6 border-l ">
                 <DisplayComments
                   comments={comment.replies}

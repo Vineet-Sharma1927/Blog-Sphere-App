@@ -2,7 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { formatDate } from "../utils/formatDate";
 import { useSelector } from "react-redux";
-import axios from "axios";
+import api from "../utils/api";
 import toast from "react-hot-toast";
 
 function DisplayBlogs({ blogs }) {
@@ -14,14 +14,9 @@ function DisplayBlogs({ blogs }) {
         return toast.error("Please login to save blog");
       }
       
-      const res = awaitpatch(
+      const res = await api.patch(
         `/api/v1/blogs/save/${blogId}`,
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          }
-        }
+        {}
       );
       
       toast.success(res.data.message);
@@ -35,7 +30,7 @@ function DisplayBlogs({ blogs }) {
 
   return (
     <div>
-      {blogs.length > 0 ? (
+      {blogs && blogs.length > 0 ? (
         blogs.map((blog) => (
           <Link key={blog._id} to={"/blog/" + blog.blogId}>
             <div key={blog._id} className="w-full my-10 flex justify-between max-xsm:flex-col ">
@@ -48,7 +43,7 @@ function DisplayBlogs({ blogs }) {
                           src={
                             blog?.creator?.profilePic
                               ? blog?.creator?.profilePic
-                              : `https://api.dicebear.com/9.x/initials/svg?seed=${blog?.creator?.name}`
+                              : `https://api.dicebear.com/9.x/initials/svg?seed=${blog?.creator?.name || 'User'}`
                           }
                           alt=""
                           className="rounded-full w-full h-full object-cover"
@@ -56,7 +51,7 @@ function DisplayBlogs({ blogs }) {
                       </div>
                     </div>
                   </Link>
-                  <p className=" hover:underline ">{blog?.creator?.name}</p>
+                  <p className=" hover:underline ">{blog?.creator?.name || 'Anonymous'}</p>
                 </div>
                 <h2 className="font-bold text-xl sm:text-2xl">{blog?.title}</h2>
                 <h4 className="line-clamp-2">{blog?.description}</h4>
@@ -65,12 +60,12 @@ function DisplayBlogs({ blogs }) {
                   <div className="flex gap-7">
                     <div className="cursor-pointer flex gap-2 ">
                       <i className="fi fi-rr-social-network text-lg mt-1"></i>
-                      <p className="text-lg">{blog?.likes?.length}</p>
+                      <p className="text-lg">{blog?.likes?.length || 0}</p>
                     </div>
 
                     <div className="flex gap-2">
                       <i className="fi fi-sr-comment-alt text-lg mt-1"></i>
-                      <p className="text-lg">{blog?.comments?.length}</p>
+                      <p className="text-lg">{blog?.comments?.length || 0}</p>
                     </div>
                     <div
                       className="flex gap-2 cursor-pointer"

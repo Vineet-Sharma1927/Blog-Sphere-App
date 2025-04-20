@@ -1,8 +1,13 @@
 import axios from 'axios';
 
+// Determine if we're in development or production
+const isDevelopment = process.env.NODE_ENV === 'development' || window.location.hostname === 'localhost';
+
 // Create axios instance with baseURL configuration
 const api = axios.create({
-  baseURL: window.location.hostname === 'localhost' ? '' : import.meta.env.VITE_BACKEND_URL,
+  // In development, use relative paths
+  // In production, use the full VITE_BACKEND_URL
+  baseURL: isDevelopment ? '' : import.meta.env.VITE_BACKEND_URL,
   headers: {
     'Content-Type': 'application/json'
   }
@@ -18,6 +23,11 @@ api.interceptors.request.use(config => {
         config.headers.Authorization = `Bearer ${user.token}`;
       }
     }
+    
+    // Log the request in development
+    if (isDevelopment) {
+      console.log(`API Request: ${config.method.toUpperCase()} ${config.baseURL || ''}${config.url}`, config);
+    }
   } catch (error) {
     console.error('Error processing auth token:', error);
   }
@@ -28,8 +38,19 @@ api.interceptors.request.use(config => {
 
 // Response interceptor for error handling
 api.interceptors.response.use(
-  response => response,
+  response => {
+    // Log the response in development
+    if (isDevelopment) {
+      console.log(`API Response: ${response.status} ${response.config.url}`, response.data);
+    }
+    return response;
+  },
   error => {
+    // Log error details in development
+    if (isDevelopment) {
+      console.error(`API Error: ${error.config?.url || 'unknown'}`, error.response?.data || error.message);
+    }
+    
     // Handle common errors
     if (error.response) {
       if (error.response.status === 401) {
